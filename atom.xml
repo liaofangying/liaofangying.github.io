@@ -1,0 +1,495 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>BigFire&#39;s Blog   φ(&gt;ω&lt;*)</title>
+  
+  
+  <link href="/atom.xml" rel="self"/>
+  
+  <link href="http://yoursite.com/"/>
+  <updated>2017-07-14T07:46:16.597Z</updated>
+  <id>http://yoursite.com/</id>
+  
+  <author>
+    <name>大火</name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>在flask中使用mysql</title>
+    <link href="http://yoursite.com/2019/06/22/%E5%9C%A8flask%E4%B8%AD%E4%BD%BF%E7%94%A8mysql/"/>
+    <id>http://yoursite.com/2019/06/22/在flask中使用mysql/</id>
+    <published>2019-06-22T07:19:00.030Z</published>
+    <updated>2017-07-14T07:46:16.597Z</updated>
+    
+    <content type="html"><![CDATA[<p>最近在看Miguel Grinberg写的《Flask Web开发》，看到数据库这一部分。<br>发现讲的是SQLAlchemy，感觉很是抽象，于是决定不跟着书上的这部分内容走了，改用Flask+MySQL。  </p><h4 id="1-安装Flask-MySQL模块"><a href="#1-安装Flask-MySQL模块" class="headerlink" title="1.安装Flask-MySQL模块"></a>1.安装Flask-MySQL模块</h4><p>使用pip进行安装<br><code>pip install Flask-MySQL</code></p><h4 id="2-创建测试表格"><a href="#2-创建测试表格" class="headerlink" title="2.创建测试表格"></a>2.创建测试表格</h4><p>这里可以通过命令行创建，也可以通过GUI工具创建，只要达到目的就行。<br>我这里是在本地数据库进行的创建。创建sql脚本如下：</p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">DATABASE</span> flaskdata;</span><br></pre></td></tr></table></figure><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">USE</span> flaskdata;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`roles`</span> (</span><br><span class="line">  <span class="string">`roleId`</span> <span class="built_in">int</span>(<span class="number">11</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT,</span><br><span class="line">  <span class="string">`roleName`</span> <span class="built_in">varchar</span>(<span class="number">100</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`roleId`</span>)</span><br><span class="line">);</span><br></pre></td></tr></table></figure><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">USE</span> flaskdata;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`users`</span> (</span><br><span class="line">  <span class="string">`userId`</span> <span class="built_in">int</span>(<span class="number">11</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT,</span><br><span class="line">  <span class="string">`userName`</span> <span class="built_in">varchar</span>(<span class="number">100</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">  <span class="string">`passWord`</span> <span class="built_in">varchar</span>(<span class="number">40</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">  <span class="string">`roleId`</span> <span class="built_in">int</span>(<span class="number">11</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`userId`</span>)</span><br><span class="line">);</span><br></pre></td></tr></table></figure><h4 id="3-插入数据"><a href="#3-插入数据" class="headerlink" title="3.插入数据"></a>3.插入数据</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`flaskdata`</span>.<span class="string">`roles`</span></span><br><span class="line">(<span class="string">`roleId`</span>,</span><br><span class="line"><span class="string">`roleName`</span>)</span><br><span class="line"><span class="keyword">VALUES</span></span><br><span class="line">(<span class="number">1</span>,</span><br><span class="line"><span class="string">'admin'</span>);</span><br></pre></td></tr></table></figure><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`flaskdata`</span>.<span class="string">`users`</span></span><br><span class="line">(<span class="string">`userId`</span>,</span><br><span class="line"><span class="string">`userName`</span>,</span><br><span class="line"><span class="string">`passWord`</span>,</span><br><span class="line"><span class="string">`roleId`</span>)</span><br><span class="line"><span class="keyword">VALUES</span></span><br><span class="line">(<span class="number">1</span>,</span><br><span class="line"><span class="string">'bigfire'</span>,</span><br><span class="line"><span class="string">'123456'</span>,</span><br><span class="line"><span class="number">1</span>);</span><br></pre></td></tr></table></figure><h4 id="4-进行连接并查询"><a href="#4-进行连接并查询" class="headerlink" title="4.进行连接并查询"></a>4.进行连接并查询</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask</span><br><span class="line"><span class="keyword">from</span> flaskext.mysql <span class="keyword">import</span> MySQL</span><br><span class="line"></span><br><span class="line">mysql = MySQL()</span><br><span class="line">app = Flask(__name__)</span><br><span class="line">app.config[<span class="string">'SECRET_KEY'</span>] = <span class="string">'hard to guess string'</span></span><br><span class="line">app.config[<span class="string">'MYSQL_DATABASE_USER'</span>] = <span class="string">'root'</span></span><br><span class="line">app.config[<span class="string">'MYSQL_DATABASE_PASSWORD'</span>] = <span class="string">''</span></span><br><span class="line">app.config[<span class="string">'MYSQL_DATABASE_DB'</span>] = <span class="string">'FlaskData'</span></span><br><span class="line">app.config[<span class="string">'MYSQL_DATABASE_HOST'</span>] = <span class="string">'localhost'</span></span><br><span class="line">mysql.init_app(app)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route('/')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">index</span><span class="params">()</span>:</span></span><br><span class="line">    message = <span class="string">''</span></span><br><span class="line">    cursor = mysql.connect().cursor()</span><br><span class="line">    cursor.execute(<span class="string">"SELECT * from users where userName = 'bigfire' and passWord = '123456'"</span>)</span><br><span class="line">    data = cursor.fetchone()</span><br><span class="line">    <span class="keyword">if</span> data <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">        message = <span class="string">'wrong'</span></span><br><span class="line">    <span class="keyword">else</span>: </span><br><span class="line">        message = <span class="string">'right'</span></span><br><span class="line">    <span class="keyword">return</span> message</span><br><span class="line">    </span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">app.run()</span><br></pre></td></tr></table></figure><h4 id="5-启动程序"><a href="#5-启动程序" class="headerlink" title="5.启动程序"></a>5.启动程序</h4><p>启动该程序，访问localhost:5000  可以看到返回right<br><img src="/2019/06/22/在flask中使用mysql/1-1.png" alt>  </p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;最近在看Miguel Grinberg写的《Flask Web开发》，看到数据库这一部分。&lt;br&gt;发现讲的是SQLAlchemy，感觉很是抽象，于是决定不跟着书上的这部分内容走了，改用Flask+MySQL。  &lt;/p&gt;
+&lt;h4 id=&quot;1-安装Flask-MySQL模块&quot;
+      
+    
+    </summary>
+    
+      <category term="python" scheme="http://yoursite.com/categories/python/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>简单python程序的目录结构</title>
+    <link href="http://yoursite.com/2018/01/11/%E7%AE%80%E5%8D%95python%E7%A8%8B%E5%BA%8F%E7%9A%84%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84/"/>
+    <id>http://yoursite.com/2018/01/11/简单python程序的目录结构/</id>
+    <published>2018-01-11T08:56:01.000Z</published>
+    <updated>2018-01-11T10:08:24.611Z</updated>
+    
+    <content type="html"><![CDATA[<ul><li>学习并使用python有一段时间了，虽然能够写python达到想要目的，但是一直没有关注过一个应用程序应该有的目录结构。</li><li>在测试工作中，经常需要写一些小工具来造测试数据或者帮助测试，虽然代码量很小，我之前都将所有的代码写在一个文件中，也不习惯写成方法调用，所以往往会造成代码不能复用、可读性低、通篇很多重复的代码、配置参数也是满篇都是很不方便找，并且执行程序也很麻烦需要一个个的先后执行，非常不利于维护和使用。于是尝试了进行目录结构化，下面以最近写的一个小程序为例：  </li></ul><hr><p><img src="/2018/01/11/简单python程序的目录结构/1-1.png" alt>   </p><ul><li>insert_testdata/insert_testdata: 存放项目的所有源代码。business中存放业务逻辑代码，database中存放连接和操作数据库的代码，（还可以有test文件存放单元测试代码）程序入口为main.py   </li><li>insert_testdata/setting: 存放一些配置的参数。如：连接数据库的信息，可以在该文件中配置测试环境或是生产环境的数据量连接信息  </li><li>requirements.txt: 存放软件依赖的外部Python包列表。（方便读者明确项目使用了哪些Python包。这个文件的格式是每一行包含一个包依赖的说明，通常是flask&gt;=0.10这种格式，要求是这个格式能被pip识别，这样就可以简单的通过 pip install -r requirements.txt来把所有Python包依赖都装好了。）</li><li>README: 项目说明文件（包含：1.软件定位，软件的基本功能。2.运行代码的方法: 安装环境、启动命令等。3.简要的使用说明。4.代码目录结构说明，更详细点可以说明软件的基本原理。5.常见问题说明。）  </li></ul><hr><p>希望自己以后都养成目录结构化的好习惯，一步步的变得越来越规范和专业<del>加油加油</del>ヾ(๑╹◡╹)ﾉ”</p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;ul&gt;
+&lt;li&gt;学习并使用python有一段时间了，虽然能够写python达到想要目的，但是一直没有关注过一个应用程序应该有的目录结构。&lt;/li&gt;
+&lt;li&gt;在测试工作中，经常需要写一些小工具来造测试数据或者帮助测试，虽然代码量很小，我之前都将所有的代码写在一个文件中，也不习惯写
+      
+    
+    </summary>
+    
+      <category term="python" scheme="http://yoursite.com/categories/python/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>postman通过interceptor插件使用Chrome浏览器的cookie</title>
+    <link href="http://yoursite.com/2017/12/01/postman%E9%80%9A%E8%BF%87interceptor%E6%8F%92%E4%BB%B6%E4%BD%BF%E7%94%A8Chrome%E6%B5%8F%E8%A7%88%E5%99%A8%E7%9A%84cookie/"/>
+    <id>http://yoursite.com/2017/12/01/postman通过interceptor插件使用Chrome浏览器的cookie/</id>
+    <published>2017-12-01T06:43:22.000Z</published>
+    <updated>2017-12-01T07:04:44.579Z</updated>
+    
+    <content type="html"><![CDATA[<ul><li>最近在做接口自动化测，本来打算用jmeter进行测试的。但是因为是测单个的请求比较简单，同时发现新版的postman已经做得很智能了，用来做接口自动化非常的方便，于是选择了postman。  </li><li>下载了postman客户端后进行发送请求发现老是cookie设置不生效，然后找到了interceptor这个插件，使用interceptor可以直接使用chrome浏览器的cookie，还可以筛选指定host的cookie，真是太方便了啦。    </li></ul><h4 id="一-安装interceptor"><a href="#一-安装interceptor" class="headerlink" title="一.安装interceptor"></a>一.安装interceptor</h4><p>安装postman及interceptor插件的步骤就省略啦，网上很多教程  </p><h4 id="二-interceptor使用方法"><a href="#二-interceptor使用方法" class="headerlink" title="二.interceptor使用方法"></a>二.interceptor使用方法</h4><p>（这里假定你已经启动了该插件）<br>1.点击chrome浏览器右上角interceptor图标<br><img src="/2017/12/01/postman通过interceptor插件使用Chrome浏览器的cookie/1-1.png" alt>    </p><ol start="2"><li><p>点击开关按钮打开interceptor  </p></li><li><p>如果需要测试特定网站，可在Filter requests中设置。Filter requests默认是“.*”，表示捕获所有的网站。例如如果你只想要捕获Google，可以在Filter requests里输入“Google”，点击apply filter保存并应用。    </p></li><li><p>在chrome中进行操作，打开Google，进行搜索。  </p></li><li><p>打开 interceptor。可以看到 “last 10 requests“。  </p></li><li><p>打开Postman，可以看到“History”显示chrome中进行的请求。<br><img src="/2017/12/01/postman通过interceptor插件使用Chrome浏览器的cookie/1-2.png" alt>    </p></li><li><p>然后就可以在Postman对这些 request进行过滤，修改  </p></li></ol>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;ul&gt;
+&lt;li&gt;最近在做接口自动化测，本来打算用jmeter进行测试的。但是因为是测单个的请求比较简单，同时发现新版的postman已经做得很智能了，用来做接口自动化非常的方便，于是选择了postman。  &lt;/li&gt;
+&lt;li&gt;下载了postman客户端后进行发送请求发现老是c
+      
+    
+    </summary>
+    
+      <category term="test" scheme="http://yoursite.com/categories/test/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>解决win10中使用vpn不能连接外网</title>
+    <link href="http://yoursite.com/2017/10/26/%E8%A7%A3%E5%86%B3win10%E4%B8%AD%E4%BD%BF%E7%94%A8vpn%E4%B8%8D%E8%83%BD%E8%BF%9E%E6%8E%A5%E5%A4%96%E7%BD%91/"/>
+    <id>http://yoursite.com/2017/10/26/解决win10中使用vpn不能连接外网/</id>
+    <published>2017-10-26T08:13:59.000Z</published>
+    <updated>2017-10-26T08:27:26.192Z</updated>
+    
+    <content type="html"><![CDATA[<ul><li>假定这里已经成功连接VPN了，点击【VPN】&gt;【网络和共享中心】<br><img src="/2017/10/26/解决win10中使用vpn不能连接外网/1-1.png" alt>   </li><li>点击【Internet选项】<br><img src="/2017/10/26/解决win10中使用vpn不能连接外网/1-2.png" alt> </li><li>点击【连接】&gt;【设置】<br><img src="/2017/10/26/解决win10中使用vpn不能连接外网/1-3.png" alt>   </li><li>点击【属性】<br><img src="/2017/10/26/解决win10中使用vpn不能连接外网/1-4.png" alt>   </li><li>点击【网络】，选择Internet协议版本，点击【属性】<br><img src="/2017/10/26/解决win10中使用vpn不能连接外网/1-5.png" alt>   </li><li>点击【高级】<br><img src="/2017/10/26/解决win10中使用vpn不能连接外网/1-6.png" alt> </li><li>撤销勾选“在远程网络上使用默认网关”即可<br><img src="/2017/10/26/解决win10中使用vpn不能连接外网/1-7.png" alt>   </li></ul>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;ul&gt;
+&lt;li&gt;假定这里已经成功连接VPN了，点击【VPN】&amp;gt;【网络和共享中心】&lt;br&gt;&lt;img src=&quot;/2017/10/26/解决win10中使用vpn不能连接外网/1-1.png&quot; alt&gt;   &lt;/li&gt;
+&lt;li&gt;点击【Internet选项】&lt;br&gt;&lt;img s
+      
+    
+    </summary>
+    
+      <category term="other" scheme="http://yoursite.com/categories/other/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>使用pep8检查python代码规范</title>
+    <link href="http://yoursite.com/2017/10/24/%E4%BD%BF%E7%94%A8pep8%E6%A3%80%E6%9F%A5python%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83/"/>
+    <id>http://yoursite.com/2017/10/24/使用pep8检查python代码规范/</id>
+    <published>2017-10-24T03:01:57.000Z</published>
+    <updated>2017-10-24T03:28:35.334Z</updated>
+    
+    <content type="html"><![CDATA[<h3 id="一-使用pip安装pep8"><a href="#一-使用pip安装pep8" class="headerlink" title="一.使用pip安装pep8"></a>一.使用pip安装pep8</h3><p><code>$pip install -U pep8</code></p><h3 id="二-测试自己写的代码："><a href="#二-测试自己写的代码：" class="headerlink" title="二.测试自己写的代码："></a>二.测试自己写的代码：</h3><h4 id="1"><a href="#1" class="headerlink" title="1."></a>1.</h4><p><code>$ pep8 --first app.py</code><br>该命令可以显示每一个错误的具体位置<br><img src="/2017/10/24/使用pep8检查python代码规范/1-1.png" alt> </p><h4 id="2"><a href="#2" class="headerlink" title="2."></a>2.</h4><p><code>$ pep8 --show-source --show-pep8 app.py</code><br>该命令可以显示每一个错误和警告对应的代码，还可以给出正确的写法<br><img src="/2017/10/24/使用pep8检查python代码规范/1-2.png" alt>  </p><h4 id="3"><a href="#3" class="headerlink" title="3."></a>3.</h4><p><code>$ pep8 --statistics -qq xxx/xxx</code><br>该命令可以检测一个项目的质量</p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h3 id=&quot;一-使用pip安装pep8&quot;&gt;&lt;a href=&quot;#一-使用pip安装pep8&quot; class=&quot;headerlink&quot; title=&quot;一.使用pip安装pep8&quot;&gt;&lt;/a&gt;一.使用pip安装pep8&lt;/h3&gt;&lt;p&gt;&lt;code&gt;$pip install -U pep8
+      
+    
+    </summary>
+    
+      <category term="python" scheme="http://yoursite.com/categories/python/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>mysql中避免insert重复记录</title>
+    <link href="http://yoursite.com/2017/10/18/mysql%E4%B8%AD%E9%81%BF%E5%85%8Dinsert%E9%87%8D%E5%A4%8D%E8%AE%B0%E5%BD%95/"/>
+    <id>http://yoursite.com/2017/10/18/mysql中避免insert重复记录/</id>
+    <published>2017-10-18T08:24:04.000Z</published>
+    <updated>2017-10-18T08:30:40.588Z</updated>
+    
+    <content type="html"><![CDATA[<h4 id="1-使用IGNORE"><a href="#1-使用IGNORE" class="headerlink" title="1.使用IGNORE"></a>1.使用IGNORE</h4><p>如果主键primary或者唯一索引unique区分了记录的唯一性，避免重复插入记录  </p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">INSERT IGNORE INTO `xxx` (`xxx`, `xxx`, `xxx`) VALUES (&apos;xxx&apos;, &apos;xxx&apos;, &apos;xxx&apos;);</span><br></pre></td></tr></table></figure><p>如果有重复记录就忽略新纪录</p><h4 id="2-使用REPLACE"><a href="#2-使用REPLACE" class="headerlink" title="2.使用REPLACE"></a>2.使用REPLACE</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">REPLACE INTO `xxx` (`xxx`, `xxx`, `xxx`) VALUES (&apos;xxx&apos;, &apos;xxx&apos;, &apos;xxx&apos;);</span><br></pre></td></tr></table></figure><p>如果旧记录与新记录相同，则删除旧记录，插入新记录</p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h4 id=&quot;1-使用IGNORE&quot;&gt;&lt;a href=&quot;#1-使用IGNORE&quot; class=&quot;headerlink&quot; title=&quot;1.使用IGNORE&quot;&gt;&lt;/a&gt;1.使用IGNORE&lt;/h4&gt;&lt;p&gt;如果主键primary或者唯一索引unique区分了记录的唯一性，避免重复插
+      
+    
+    </summary>
+    
+      <category term="mysql" scheme="http://yoursite.com/categories/mysql/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>最近...</title>
+    <link href="http://yoursite.com/2017/10/17/%E6%9C%80%E8%BF%91/"/>
+    <id>http://yoursite.com/2017/10/17/最近/</id>
+    <published>2017-10-17T02:52:38.000Z</published>
+    <updated>2017-10-18T07:56:18.981Z</updated>
+    
+    <content type="html"><![CDATA[<p>已经一个多月没有更新博客了，这段时间也没有学习什么。<br>公司项目开始迭代，有在写用例和测试，虽然还是剩下了很多空余的时间，自己也没有利用好这些时间来学习。<br>我知道这样的自己很不好…  我也不知道怎么办… 又陷入了迷茫…<br>干脆记录一下自己最近的生活吧…  </p><ul><li>做测试已经1年半了，现在这家公司也待了1年了，这1年自己也学了很多东西，做了一些东西，内心是有成就感的。但是经常有的是一种不安，因为就我一个测试，所有不会的东西都是自己去学，做得也不规范吧… 也没有认识的测试大牛可以指点一下，应该向什么方向发展？我也不知道….</li><li>8月份和前男友分手，心情跌倒了低谷，很消极。这段时间也没能静下心来学习，总是会想起以前的事情，想着想着就哭了…. 听了500遍《囍帖街》也没能忘掉…</li><li>重拾了健身，两个月，加了很多运动量，很累，出了很多汗，身体很痛。虐完身体回家洗洗希望就可以早点睡着。嗯，现在不会那么频繁的想起以前的事情了，身体也好了很多。减掉了12斤脂肪，增加了4斤肌肉。虽然自己看不出来有什么变化，但是看到我的人都说我瘦了 ヾ(๑╹◡╹)ﾉ”，希望自己能再瘦一点，再好看一点</li><li>工资没有涨，每个月还是月光，没有一点积蓄。很多想吃的东西舍不得去吃，很多想买的东西没能买下来，很多想去的地方也不能去，看到别人的生活也只能是羡慕。依旧会为房租发愁，为后面的生活发愁。这样的生活，我好怕看不到尽头，会不会一辈子就是这样了….   每次回家走出地铁，原来外面的天都黑了，天气凉了，心里感觉很空很空…</li><li>我很想有一个家，真的很想。昨天晚上做了一个梦，梦见自己去纹身了，纹了两个，一个在腋窝下方胸部旁边，是个英文字母“father”，另一个在右肩，包裹住了圆圆的肩部，好像是个圆形的图案，但是实在想不起是什么图案了。只记得梦中纹“father”的时候特别痛…. 我也不知道为什么是这个字母… 可能是太渴望得到家庭的温暖了吧</li><li>也许要去做一个手术，也许还是只有我一个人去。现在还没有钱去医院，也不知道该不该告诉家里的人，也不知道什么时候才有钱去。我一个人我也很害怕啊。不知道手术会有多难受。</li><li>我每天有好多无聊的、新鲜的话想说想去分享，但是不知道和谁去说…</li></ul>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;已经一个多月没有更新博客了，这段时间也没有学习什么。&lt;br&gt;公司项目开始迭代，有在写用例和测试，虽然还是剩下了很多空余的时间，自己也没有利用好这些时间来学习。&lt;br&gt;我知道这样的自己很不好…  我也不知道怎么办… 又陷入了迷茫…&lt;br&gt;干脆记录一下自己最近的生活吧…  &lt;/
+      
+    
+    </summary>
+    
+      <category term="叨叨叨" scheme="http://yoursite.com/categories/%E5%8F%A8%E5%8F%A8%E5%8F%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>使用Xpath Helper解析页面获得元素定位</title>
+    <link href="http://yoursite.com/2017/09/07/%E4%BD%BF%E7%94%A8Xpath-Helper%E8%A7%A3%E6%9E%90%E9%A1%B5%E9%9D%A2%E8%8E%B7%E5%BE%97%E5%85%83%E7%B4%A0%E5%AE%9A%E4%BD%8D/"/>
+    <id>http://yoursite.com/2017/09/07/使用Xpath-Helper解析页面获得元素定位/</id>
+    <published>2017-09-07T02:03:51.000Z</published>
+    <updated>2017-09-07T03:50:54.660Z</updated>
+    
+    <content type="html"><![CDATA[<p>昨天遇到一个问题，一下午都没有解决。就是一个列表页面，我需要点击列表中的某一项，该元素没有id和name，我不断尝试了css和Xpath的方法，始终没能成功定位。<br>如果使用Xpath的路径定位肉眼去看实在太难了，还好有Xpath Helper这么一个工具可以帮助我们自动获取元素路径。  </p><h4 id="1-Xpath-Helper是Chrome浏览器的一个插件，首先在Chrome商店下载安装："><a href="#1-Xpath-Helper是Chrome浏览器的一个插件，首先在Chrome商店下载安装：" class="headerlink" title="1.Xpath Helper是Chrome浏览器的一个插件，首先在Chrome商店下载安装："></a>1.Xpath Helper是Chrome浏览器的一个插件，首先在Chrome商店下载安装：</h4><p><img src="/2017/09/07/使用Xpath-Helper解析页面获得元素定位/1-1.png" alt>    </p><h4 id="2-然后可以看到浏览器的右上角图标，表示成功安装了该插件："><a href="#2-然后可以看到浏览器的右上角图标，表示成功安装了该插件：" class="headerlink" title="2.然后可以看到浏览器的右上角图标，表示成功安装了该插件："></a>2.然后可以看到浏览器的右上角图标，表示成功安装了该插件：</h4><p><img src="/2017/09/07/使用Xpath-Helper解析页面获得元素定位/1-2.png" alt>  </p><h4 id="3-重启浏览器后点击该图标后，页面上方会出现黑色的框，此时按住键盘的Shift键，鼠标移至你需要定位的点。如图我要定位页面中的“中港-CC-PARK”，上方左边就是该元素的绝对路径了，上方右边就是定位显示的文本内容。"><a href="#3-重启浏览器后点击该图标后，页面上方会出现黑色的框，此时按住键盘的Shift键，鼠标移至你需要定位的点。如图我要定位页面中的“中港-CC-PARK”，上方左边就是该元素的绝对路径了，上方右边就是定位显示的文本内容。" class="headerlink" title="3.重启浏览器后点击该图标后，页面上方会出现黑色的框，此时按住键盘的Shift键，鼠标移至你需要定位的点。如图我要定位页面中的“中港 CC PARK”，上方左边就是该元素的绝对路径了，上方右边就是定位显示的文本内容。"></a>3.重启浏览器后点击该图标后，页面上方会出现黑色的框，此时按住键盘的Shift键，鼠标移至你需要定位的点。如图我要定位页面中的“中港 CC PARK”，上方左边就是该元素的绝对路径了，上方右边就是定位显示的文本内容。</h4><p><img src="/2017/09/07/使用Xpath-Helper解析页面获得元素定位/1-3.png" alt>  </p><h4 id="4-当然这绝对路径太繁杂了，可以简化一下修改为相对路径，且rf只支持绝对路径。如图："><a href="#4-当然这绝对路径太繁杂了，可以简化一下修改为相对路径，且rf只支持绝对路径。如图：" class="headerlink" title="4.当然这绝对路径太繁杂了，可以简化一下修改为相对路径，且rf只支持绝对路径。如图："></a>4.当然这绝对路径太繁杂了，可以简化一下修改为相对路径，且rf只支持绝对路径。如图：</h4><p><img src="/2017/09/07/使用Xpath-Helper解析页面获得元素定位/1-4.png" alt>    </p><h4 id="5-最后拷贝进ride，能成功点击啦-（注意这个案例中class属性里面的selected应该去掉，因为自动化操作的时候鼠标未经过该元素是未被选中的状态）"><a href="#5-最后拷贝进ride，能成功点击啦-（注意这个案例中class属性里面的selected应该去掉，因为自动化操作的时候鼠标未经过该元素是未被选中的状态）" class="headerlink" title="5.最后拷贝进ride，能成功点击啦~  （注意这个案例中class属性里面的selected应该去掉，因为自动化操作的时候鼠标未经过该元素是未被选中的状态）"></a>5.最后拷贝进ride，能成功点击啦~  （注意这个案例中class属性里面的selected应该去掉，因为自动化操作的时候鼠标未经过该元素是未被选中的状态）</h4><p><img src="/2017/09/07/使用Xpath-Helper解析页面获得元素定位/1-5.png" alt>    </p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;昨天遇到一个问题，一下午都没有解决。就是一个列表页面，我需要点击列表中的某一项，该元素没有id和name，我不断尝试了css和Xpath的方法，始终没能成功定位。&lt;br&gt;如果使用Xpath的路径定位肉眼去看实在太难了，还好有Xpath Helper这么一个工具可以帮助我们自
+      
+    
+    </summary>
+    
+      <category term="Robot Framework" scheme="http://yoursite.com/categories/Robot-Framework/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>RF+S2L中关于元素定位</title>
+    <link href="http://yoursite.com/2017/09/06/RF-S2L%E4%B8%AD%E5%85%B3%E4%BA%8E%E5%85%83%E7%B4%A0%E5%AE%9A%E4%BD%8D/"/>
+    <id>http://yoursite.com/2017/09/06/RF-S2L中关于元素定位/</id>
+    <published>2017-09-06T02:10:07.000Z</published>
+    <updated>2017-09-06T02:35:34.856Z</updated>
+    
+    <content type="html"><![CDATA[<h3 id="1-使用id、name进行定位"><a href="#1-使用id、name进行定位" class="headerlink" title="1.使用id、name进行定位"></a>1.使用id、name进行定位</h3><p>使用id是最方便的，但是并不是所有的页面的每一个元素都有id的。<br>如果没有id的话，就可以使用name，但是name是可以同名的，可以有多个元素使用同一个name。所以需要使用其他方法来进行定位。<br>使用name定位：<br><img src="/2017/09/06/RF-S2L中关于元素定位/1-1.png" alt> </p><h3 id="2-使用css进行定位"><a href="#2-使用css进行定位" class="headerlink" title="2.使用css进行定位"></a>2.使用css进行定位</h3><p>id：     css = #xxx<br>class:   css = .xxx<br>name:   css = [name=xxx]<br>type:    css = [type=xxx]<br>父子：css = span &gt; input<br>标签：css = input<br>例：<br><img src="/2017/09/06/RF-S2L中关于元素定位/1-2.png" alt> </p><h3 id="3-使用xpath进行定位"><a href="#3-使用xpath进行定位" class="headerlink" title="3.使用xpath进行定位"></a>3.使用xpath进行定位</h3><p>路径： Xpath = /html/body/div[1]/div[4]/span/input<br>元素：<br>Xpath = //input[@id=’xxx’]<br>Xpath = //span[@class=’xxx’]/input<br>Xpath = //input[@class=’xxx’ and @id=’xxx’]<br>Xpath = //input[@class=’xxx’ or @id=’xxx’]  </p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h3 id=&quot;1-使用id、name进行定位&quot;&gt;&lt;a href=&quot;#1-使用id、name进行定位&quot; class=&quot;headerlink&quot; title=&quot;1.使用id、name进行定位&quot;&gt;&lt;/a&gt;1.使用id、name进行定位&lt;/h3&gt;&lt;p&gt;使用id是最方便的，但是并不是所有的
+      
+    
+    </summary>
+    
+      <category term="Robot Framework" scheme="http://yoursite.com/categories/Robot-Framework/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>使用命令行执行robot framework测试用例</title>
+    <link href="http://yoursite.com/2017/09/05/%E4%BD%BF%E7%94%A8%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%89%A7%E8%A1%8Crobot-framework%E6%B5%8B%E8%AF%95%E7%94%A8%E4%BE%8B/"/>
+    <id>http://yoursite.com/2017/09/05/使用命令行执行robot-framework测试用例/</id>
+    <published>2017-09-05T03:53:34.000Z</published>
+    <updated>2017-09-05T04:01:15.147Z</updated>
+    
+    <content type="html"><![CDATA[<ul><li><p>执行整个项目下的所有用例： <code>pybot D:\projectname</code></p></li><li><p>执行某个suite中的所有用例：<code>pybot D:\projectname\suitename</code></p></li><li><p>执行某一个用例：<code>pybot --test casename D:\projectname\suitename</code></p></li><li><p>执行项目中指定标签的案例： <code>pybot --include tagName D:\projectname</code></p></li></ul>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;ul&gt;
+&lt;li&gt;&lt;p&gt;执行整个项目下的所有用例： &lt;code&gt;pybot D:\projectname&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;执行某个suite中的所有用例：&lt;code&gt;pybot D:\projectname\suitename&lt;/code&gt;&lt;/p&gt;
+      
+    
+    </summary>
+    
+      <category term="Robot Framework" scheme="http://yoursite.com/categories/Robot-Framework/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>使用PhantomJS进行非GUI爬取斗鱼房间列表</title>
+    <link href="http://yoursite.com/2017/09/04/%E4%BD%BF%E7%94%A8PhantomJS%E8%BF%9B%E8%A1%8C%E9%9D%9EGUI%E7%88%AC%E5%8F%96%E6%96%97%E9%B1%BC%E6%88%BF%E9%97%B4%E5%88%97%E8%A1%A8/"/>
+    <id>http://yoursite.com/2017/09/04/使用PhantomJS进行非GUI爬取斗鱼房间列表/</id>
+    <published>2017-09-04T09:32:08.000Z</published>
+    <updated>2017-09-04T09:44:42.201Z</updated>
+    
+    <content type="html"><![CDATA[<p>下载合适版本的PhantomJS，下载地址：<a href="http://phantomjs.org/download.html" target="_blank" rel="noopener">http://phantomjs.org/download.html</a><br>解压后进入bin目录，将phantomjs.exe放于与代码文件同一目录下，或者在代码<code>self.driver = webdriver.PhantomJS()</code>的括号中填入phantomjs.exe的绝对路径</p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#coding:utf-8</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> unittest</span><br><span class="line"><span class="keyword">from</span> selenium <span class="keyword">import</span> webdriver</span><br><span class="line"><span class="keyword">from</span> bs4 <span class="keyword">import</span> BeautifulSoup</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line">sys.path.append(<span class="string">".."</span>)</span><br><span class="line">reload(sys)</span><br><span class="line">sys.setdefaultencoding(<span class="string">"utf-8"</span>)</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">seleniumTest</span><span class="params">(unittest.TestCase)</span>:</span></span><br><span class="line"><span class="comment">#初始化webdriver</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">setUp</span><span class="params">(self)</span>:</span></span><br><span class="line">self.driver = webdriver.PhantomJS()</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">testEle</span><span class="params">(self)</span>:</span></span><br><span class="line">driver = self.driver</span><br><span class="line"><span class="comment">#driver.get获取浏览器加载完成后的源码</span></span><br><span class="line">driver.get(<span class="string">'http://www.douyu.com/directory/all'</span>)</span><br><span class="line">soup = BeautifulSoup(driver.page_source, <span class="string">'xml'</span>)</span><br><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">titles = soup.find_all(<span class="string">'h3'</span>, &#123;<span class="string">'class'</span>: <span class="string">'ellipsis'</span>&#125;)</span><br><span class="line"><span class="keyword">for</span> title <span class="keyword">in</span> titles:</span><br><span class="line"><span class="keyword">with</span> open(<span class="string">'text.txt'</span>, <span class="string">'a'</span>) <span class="keyword">as</span> f:</span><br><span class="line">f.write(title.get_text().strip().replace(<span class="string">"\n"</span>, <span class="string">""</span>) + <span class="string">'\n'</span>)</span><br><span class="line"><span class="comment">#当最后一页不可点击时跳出循环</span></span><br><span class="line"><span class="keyword">if</span> driver.page_source.find(<span class="string">'shark-pager-disable-next'</span>) != <span class="number">-1</span>:</span><br><span class="line"><span class="keyword">break</span></span><br><span class="line"><span class="comment">#点击跳转获取下一页</span></span><br><span class="line">elem = driver.find_element_by_class_name(<span class="string">'shark-pager-next'</span>)</span><br><span class="line">elem.click()</span><br><span class="line">soup = BeautifulSoup(driver.page_source, <span class="string">'xml'</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">tearDown</span><span class="params">(self)</span>:</span></span><br><span class="line"><span class="keyword">print</span> <span class="string">'=======================完成啦====================='</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:</span><br><span class="line">unittest.main()</span><br></pre></td></tr></table></figure>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;下载合适版本的PhantomJS，下载地址：&lt;a href=&quot;http://phantomjs.org/download.html&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;http://phantomjs.org/download.html&lt;/a&gt;&lt;
+      
+    
+    </summary>
+    
+      <category term="python" scheme="http://yoursite.com/categories/python/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>使用Robot Framework连接mysql数据库进行自动化测试</title>
+    <link href="http://yoursite.com/2017/08/28/%E4%BD%BF%E7%94%A8Robot-Framework%E8%BF%9E%E6%8E%A5mysql%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9B%E8%A1%8C%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/"/>
+    <id>http://yoursite.com/2017/08/28/使用Robot-Framework连接mysql数据库进行自动化测试/</id>
+    <published>2017-08-28T09:20:45.000Z</published>
+    <updated>2017-08-28T09:46:01.806Z</updated>
+    
+    <content type="html"><![CDATA[<h4 id="1-安装依赖库"><a href="#1-安装依赖库" class="headerlink" title="1.安装依赖库"></a>1.安装依赖库</h4><p>这里还是使用pip进行安装：  </p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ pip install robotframework-DatabaseLibrary</span><br><span class="line">$ pip install pymysql</span><br></pre></td></tr></table></figure><h4 id="2-导入库"><a href="#2-导入库" class="headerlink" title="2.导入库"></a>2.导入库</h4><p><img src="/2017/08/28/使用Robot-Framework连接mysql数据库进行自动化测试/1-1.png" alt="Edit">  </p><h4 id="3-编写案列"><a href="#3-编写案列" class="headerlink" title="3.编写案列"></a>3.编写案列</h4><p>这里进行了数据的连接，查询，和新增<br><img src="/2017/08/28/使用Robot-Framework连接mysql数据库进行自动化测试/1-2.png" alt="Edit">  </p><h4 id="4-执行测试"><a href="#4-执行测试" class="headerlink" title="4.执行测试"></a>4.执行测试</h4><p>执行成功<br><img src="/2017/08/28/使用Robot-Framework连接mysql数据库进行自动化测试/1-3.png" alt="Edit">  </p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h4 id=&quot;1-安装依赖库&quot;&gt;&lt;a href=&quot;#1-安装依赖库&quot; class=&quot;headerlink&quot; title=&quot;1.安装依赖库&quot;&gt;&lt;/a&gt;1.安装依赖库&lt;/h4&gt;&lt;p&gt;这里还是使用pip进行安装：  &lt;/p&gt;
+&lt;figure class=&quot;highlight plai
+      
+    
+    </summary>
+    
+      <category term="Robot Framework" scheme="http://yoursite.com/categories/Robot-Framework/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Robot Framework成功导入库后执行Case提示找不到关键字</title>
+    <link href="http://yoursite.com/2017/08/28/Robot-Framework%E6%88%90%E5%8A%9F%E5%AF%BC%E5%85%A5%E5%BA%93%E5%90%8E%E6%89%A7%E8%A1%8CCase%E6%8F%90%E7%A4%BA%E6%89%BE%E4%B8%8D%E5%88%B0%E5%85%B3%E9%94%AE%E5%AD%97/"/>
+    <id>http://yoursite.com/2017/08/28/Robot-Framework成功导入库后执行Case提示找不到关键字/</id>
+    <published>2017-08-28T06:56:13.000Z</published>
+    <updated>2017-08-28T07:16:49.275Z</updated>
+    
+    <content type="html"><![CDATA[<p>使用DatabaseLibrary这个库连接数据库，一直报错 FAIL : No keyword with name ‘Connect To Database Using Custom Params’ found.<br>Google了一圈也没找到原因，后来将库在Dictionary类型的Suite中导入改为在File类型的Suite中导入就对了，下面看一下详细的错误重现与解决过程吧 ⁄(⁄⁄•⁄ω⁄•⁄⁄)⁄  </p><hr><p>一开始我是这样做的：<br>将库在Dictionary类型的Suite中导入的：<br><img src="/2017/08/28/Robot-Framework成功导入库后执行Case提示找不到关键字/1-1.png" alt="Edit"><br>连接数据库的案列：<br><img src="/2017/08/28/Robot-Framework成功导入库后执行Case提示找不到关键字/1-2.png" alt="Edit"><br>执行案列，报错FAIL : No keyword with name ‘Connect To Database Using Custom Params’ found.<br><img src="/2017/08/28/Robot-Framework成功导入库后执行Case提示找不到关键字/1-3.png" alt="Edit"> </p><hr><p>然后我将库在File类型的Suite中导入：<br><img src="/2017/08/28/Robot-Framework成功导入库后执行Case提示找不到关键字/1-4.png" alt="Edit"><br>执行，成功连接数据库：<br><img src="/2017/08/28/Robot-Framework成功导入库后执行Case提示找不到关键字/1-5.png" alt="Edit">  </p><hr><p>可是按照作用域来说，将库在上一级Dictionary类型suite中导入也是可以的吧？因为这样导入后，我按F5查找关键字也是能找到关键字的。可是为什么执行案列却又报找不到关键字了？奇怪，不知道为什么了 (；´д｀)ゞ</p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;使用DatabaseLibrary这个库连接数据库，一直报错 FAIL : No keyword with name ‘Connect To Database Using Custom Params’ found.&lt;br&gt;Google了一圈也没找到原因，后来将库在Dicti
+      
+    
+    </summary>
+    
+      <category term="Robot Framework" scheme="http://yoursite.com/categories/Robot-Framework/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>使用RobotFramework+Selenium2Library再次执行case未显示log</title>
+    <link href="http://yoursite.com/2017/08/25/%E4%BD%BF%E7%94%A8RobotFramework-Selenium2Library%E5%86%8D%E6%AC%A1%E6%89%A7%E8%A1%8Ccase%E6%9C%AA%E6%98%BE%E7%A4%BAlog/"/>
+    <id>http://yoursite.com/2017/08/25/使用RobotFramework-Selenium2Library再次执行case未显示log/</id>
+    <published>2017-08-25T02:43:38.000Z</published>
+    <updated>2017-08-25T02:52:48.079Z</updated>
+    
+    <content type="html"><![CDATA[<p>使用RobotFramework+Selenium2Library第二次执行case未显示log，<br>是因为我使用的是Chrome浏览器，运行一次后chromedriver.exe进程仍在运行中。<br>所以应想办法将该进程杀掉。下面有三种方法：  </p><ul><li>每次运行后，进入任务管理器，手动结束该进程。  </li><li>每次运行后，执行命令杀掉该进程。  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">taskkill /f /im  chromedriver.exe</span><br></pre></td></tr></table></figure></li></ul><p><img src="/2017/08/25/使用RobotFramework-Selenium2Library再次执行case未显示log/1-1.png" alt></p><ul><li>将杀掉进程的代码封装进ride</li></ul>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;使用RobotFramework+Selenium2Library第二次执行case未显示log，&lt;br&gt;是因为我使用的是Chrome浏览器，运行一次后chromedriver.exe进程仍在运行中。&lt;br&gt;所以应想办法将该进程杀掉。下面有三种方法：  &lt;/p&gt;
+&lt;ul&gt;
+
+      
+    
+    </summary>
+    
+      <category term="Robot Framework" scheme="http://yoursite.com/categories/Robot-Framework/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>使用pdb调试python程序</title>
+    <link href="http://yoursite.com/2017/08/22/%E4%BD%BF%E7%94%A8pdb%E8%B0%83%E8%AF%95python%E7%A8%8B%E5%BA%8F/"/>
+    <id>http://yoursite.com/2017/08/22/使用pdb调试python程序/</id>
+    <published>2017-08-22T06:18:49.000Z</published>
+    <updated>2017-08-22T06:50:13.906Z</updated>
+    
+    <content type="html"><![CDATA[<p>官方文档：<a href="https://docs.python.org/3/library/pdb.html" target="_blank" rel="noopener">https://docs.python.org/3/library/pdb.html</a><br>使用pdb的方式有两种，其中一种是在程序内部添加代码，这种方式和添加print差不多。<br>再啰嗦一句，还有ipdb，ipdb是pdb的加强版，如果感兴趣可以再去研究。<br>要注意的是ipdb只能在3.3以上的python版本中使用。</p><p>程序内部：  </p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> ipdb <span class="keyword">import</span> set_trace</span><br><span class="line">set_trace()</span><br></pre></td></tr></table></figure><p>使用命令行的方式：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python -m pdb xxx.py</span><br></pre></td></tr></table></figure><h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><ul><li>enter 重复上次命令</li><li>c(ont(inue)) 继续</li><li>h(elp) 帮助</li><li>a(rgs) 打印当前函数的参数</li><li>j(ump) 让程序跳转到指定的行数</li><li>l(ist) 可以列出当前将要运行的代码块</li><li>n(ext) 让程序运行下一行，如果当前语句有一个函数调用，用 n 是不会进入被调用的函数体中的</li><li>p(rint) 最有用的命令之一，打印某个变量</li><li>pp 好看一点的p </li><li>b(reak) 添加断点<br>b 列出当前所有断点，和断点执行到统计次数<br>b xx：当前脚本的xx行添加断点<br>b filename:xx：脚本filename的xx行添加断点<br>b function：在函数function的第一条可执行语句处添加断点  </li><li>q(uit) 退出调试</li><li>r(eturn) 继续执行，直到函数体返回</li><li>s(tep) 跟 n 相似，但是如果当前有一个函数调用，那么 s 会进入被调用的函数体中</li><li>输入pdb不认识的命令，pdb会把他当做Python语句在当前环境下执行</li></ul>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;官方文档：&lt;a href=&quot;https://docs.python.org/3/library/pdb.html&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;https://docs.python.org/3/library/pdb.html&lt;/a&gt;&lt;b
+      
+    
+    </summary>
+    
+      <category term="python" scheme="http://yoursite.com/categories/python/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>flask+jinja2+bootstrap搭建博客</title>
+    <link href="http://yoursite.com/2017/08/22/flask-jinja2-bootstrap%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/"/>
+    <id>http://yoursite.com/2017/08/22/flask-jinja2-bootstrap搭建博客/</id>
+    <published>2017-08-22T02:24:32.000Z</published>
+    <updated>2017-08-22T02:36:42.709Z</updated>
+    
+    <content type="html"><![CDATA[<ul><li>这是我第一次学着写web程序，选择了flask这个轻量型的框架。  </li><li>可算是差不多写完了，还是要有个仪式感，写篇博客纪念一下下~~嘻嘻 ٩(๑&gt;◡&lt;๑)۶ </li><li>代码地址：<a href="https://github.com/liaofangying/flasky_bigfire" target="_blank" rel="noopener">https://github.com/liaofangying/flasky_bigfire</a></li></ul><hr><ul><li>这个web程序是我跟着《Flask Web开发》这本书做的，利用20多天的空闲时间完成的</li><li>整个程序包含登录、注册、修改密码、个人中心、文章、评论、关注、发表文章、预览、分页等功能</li><li>因为我对数据库要熟悉一点，所以采用了直接连接mysql数据库的方式，创建表的sql文件在根目录下</li><li>python版本为2.7</li><li>这当中很多部分我是没有按照书上来写的，因为有的地方对于没有基础的我来说实在难懂，不过书上涉及的功能，我按照自己方法也都写出来了，有不规范的地方，希望有一天自己能够返回回来进行优化</li><li>还是那句话，希望自己能够坚持学习，早日成为一名测试开发工程师，加油！  </li></ul><hr><h4 id="所需依赖包："><a href="#所需依赖包：" class="headerlink" title="所需依赖包："></a>所需依赖包：</h4><ul><li>hashlib</li><li>base64</li><li>time</li><li>datetime</li><li>flaskext.mysql</li><li>markdown</li><li>flask</li><li>flask_bootstrap</li><li>flask_moment</li><li>flask_pagedown</li></ul><p>执行controller目录下的view.py文件即可</p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;ul&gt;
+&lt;li&gt;这是我第一次学着写web程序，选择了flask这个轻量型的框架。  &lt;/li&gt;
+&lt;li&gt;可算是差不多写完了，还是要有个仪式感，写篇博客纪念一下下~~嘻嘻 ٩(๑&amp;gt;◡&amp;lt;๑)۶ &lt;/li&gt;
+&lt;li&gt;代码地址：&lt;a href=&quot;https://github
+      
+    
+    </summary>
+    
+      <category term="python" scheme="http://yoursite.com/categories/python/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>mysql中的timestamp和datetime</title>
+    <link href="http://yoursite.com/2017/08/16/mysql%E4%B8%AD%E7%9A%84timestamp%E5%92%8Cdatetime/"/>
+    <id>http://yoursite.com/2017/08/16/mysql中的timestamp和datetime/</id>
+    <published>2017-08-16T02:27:02.000Z</published>
+    <updated>2017-08-16T03:29:50.528Z</updated>
+    
+    <content type="html"><![CDATA[<p>今天在navicat mysql创建表的时候报错”1294 - Invalid ON UPDATE clause for ‘lastEditDate’ column”：<br><img src="/2017/08/16/mysql中的timestamp和datetime/1-1.png" alt><br>后来才知道是因为timestamp的默认值是不能为空的，这里我们取系统当前时间CURRENT_TIMESTAMP(3)<br><img src="/2017/08/16/mysql中的timestamp和datetime/1-2.png" alt>   </p><p>以下参考自：<a href="http://lavasoft.blog.51cto.com/62575/280284" target="_blank" rel="noopener">http://lavasoft.blog.51cto.com/62575/280284</a></p><h3 id="TIMESTAMP"><a href="#TIMESTAMP" class="headerlink" title="TIMESTAMP"></a>TIMESTAMP</h3><ol><li><p>TIMESTAMP列必须有默认值，默认值可以为’0000-00-00 00:00:00’，但不能为null</p></li><li><p>TIMESTAMP列不可以设置值，只能由数据库自动去修改</p></li><li><p>一个表可以存在多个TIMESTAMP列，但只有一个列会根据数据更新而改变数据库系统当前值（默认是第一个TIMESTAMP列），因此，一个表中有多个TIMESTAMP列，是没有一意义的，实际上一个表只设定一个TIMESTAMP列。</p></li><li><p>TIMESTAMP列的默认值是CURRENT_TIMESTAMP常量值，当记录数据发生变化的时候，TIMESTAMP列会自动将其值设定为CURRENT_TIMESTAMP。</p></li><li><p>TIMESTAMP列创建后的格式是:语句含义是，lastEditDate字段的默认值是CURRENT_TIMESTAMP，当纪录更新时候，自动将lastEditDate字段的值设置为CURRENT_TIMESTAMP。  </p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lastEditDate timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP</span><br></pre></td></tr></table></figure></li><li><p>另外，下面的定义从语法角度是对的，但是没有意义，因为该字段的值不可更改，永远只能为默认值</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lastEditDate timestamp NOT NULL DEFAULT &apos;0000-00-00 00:00:00&apos;</span><br></pre></td></tr></table></figure></li></ol><h3 id="DATETIME"><a href="#DATETIME" class="headerlink" title="DATETIME"></a>DATETIME</h3><ol><li>DATETIME列可以设置为多个，默认可为null，可以手动设置其值</li><li>DATETIME列不可设置默认值</li><li>DATETIME列可以变相设置默认值，例如：通过触发器. 或者插入数据时，将DATETIME字段值设置为now()，这样可以做到了。一般创建表时用datetime，更新时用timestamp</li></ol>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;今天在navicat mysql创建表的时候报错”1294 - Invalid ON UPDATE clause for ‘lastEditDate’ column”：&lt;br&gt;&lt;img src=&quot;/2017/08/16/mysql中的timestamp和datetime/1
+      
+    
+    </summary>
+    
+      <category term="mysql" scheme="http://yoursite.com/categories/mysql/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>flask中关于cookie的设置</title>
+    <link href="http://yoursite.com/2017/08/15/flask%E4%B8%AD%E5%85%B3%E4%BA%8Ecookie%E7%9A%84%E8%AE%BE%E7%BD%AE/"/>
+    <id>http://yoursite.com/2017/08/15/flask中关于cookie的设置/</id>
+    <published>2017-08-15T08:46:08.000Z</published>
+    <updated>2017-08-15T09:31:17.620Z</updated>
+    
+    <content type="html"><![CDATA[<h3 id="设置cookie"><a href="#设置cookie" class="headerlink" title="设置cookie"></a>设置cookie</h3><p>通过响应对象的set_cookie方法我们可以设置自定义cookie的内容和保存在客户端的时长:</p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> make_response</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route('/all')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">show_all</span><span class="params">()</span>:</span></span><br><span class="line">    response = make_response(<span class="string">'hello bigfire!'</span>)</span><br><span class="line">    response.set_cookie(<span class="string">'name'</span>, <span class="string">'bigfire'</span>, max_age = <span class="number">30</span>*<span class="number">24</span>*<span class="number">60</span>*<span class="number">60</span><span class="string">')</span></span><br><span class="line"><span class="string">    return response</span></span><br></pre></td></tr></table></figure><h3 id="获取cookie"><a href="#获取cookie" class="headerlink" title="获取cookie"></a>获取cookie</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> request</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route('/')  </span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">index</span><span class="params">()</span>:</span>  </span><br><span class="line">    name=request.cookies.get(<span class="string">'name'</span>)  </span><br><span class="line">    <span class="keyword">return</span> name</span><br></pre></td></tr></table></figure><h3 id="删除cookie"><a href="#删除cookie" class="headerlink" title="删除cookie"></a>删除cookie</h3><ul><li>通过<code>set_cookie</code>的方法设置cookie的有效期为0</li></ul><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@app.route('/del_cookie')  </span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">del_cookie</span><span class="params">()</span>:</span>  </span><br><span class="line">    response=make_response(<span class="string">'hello bigfire!'</span>)  </span><br><span class="line">    response.set_cookie(<span class="string">'name'</span>,<span class="string">''</span>,expires=<span class="number">0</span>)  </span><br><span class="line">    <span class="keyword">return</span> response</span><br></pre></td></tr></table></figure><ul><li>通过<code>delete_cookie</code>删除cookie  </li></ul><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@app.route('/del_cookie')  </span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">del_cookie</span><span class="params">()</span>:</span>  </span><br><span class="line">    response=make_response(<span class="string">'hello bigfire!'</span>)  </span><br><span class="line">    response.delete_cookie(<span class="string">'name'</span>)  </span><br><span class="line">    <span class="keyword">return</span> response</span><br></pre></td></tr></table></figure><ul><li>直接在浏览器手动清除cookie</li></ul>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h3 id=&quot;设置cookie&quot;&gt;&lt;a href=&quot;#设置cookie&quot; class=&quot;headerlink&quot; title=&quot;设置cookie&quot;&gt;&lt;/a&gt;设置cookie&lt;/h3&gt;&lt;p&gt;通过响应对象的set_cookie方法我们可以设置自定义cookie的内容和保存在客户端的时
+      
+    
+    </summary>
+    
+      <category term="python" scheme="http://yoursite.com/categories/python/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>flask首页(第一页)设置默认url</title>
+    <link href="http://yoursite.com/2017/08/14/flask%E9%A6%96%E9%A1%B5-%E7%AC%AC%E4%B8%80%E9%A1%B5-%E8%AE%BE%E7%BD%AE%E9%BB%98%E8%AE%A4url/"/>
+    <id>http://yoursite.com/2017/08/14/flask首页-第一页-设置默认url/</id>
+    <published>2017-08-14T08:04:22.000Z</published>
+    <updated>2017-08-14T09:09:32.080Z</updated>
+    
+    <content type="html"><![CDATA[<p>最近学习flask的过程中，遇到一个问题。<br>进入首页页面，显示文章列表，文章列表是做了分页的，那么url应该是<code>/page=&lt;page&gt;</code>这样的，<br>那么第一页也就是首页的路径应该是<code>/</code>还是<code>/page=1</code>呢？<br>一开始我是这样想的，首页（第一页）路径为<code>/</code>，然后重定向至<code>/page=&lt;page&gt;</code></p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@app.route('/', methods = ['GET', 'POST'])</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">index</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">return</span> redirect(url_for(<span class="string">'index_page'</span>, page = <span class="number">1</span>))</span><br><span class="line">    </span><br><span class="line"><span class="meta">@app.route('/page=&lt;page&gt;', methods = ['GET', 'POST'])</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">index_page</span><span class="params">(page=page)</span>:</span></span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">return</span> ...</span><br></pre></td></tr></table></figure><p>后来仔细一想这样做不好，因为首页一般来说是不会显示页数的，所以应该将第一页的url写成不带有页码。<br>并且像这样写的话页面太多了，不利于后期维护。所以将代码做了如下修改：   </p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@app.route('/', methods = ['GET', 'POST'])</span></span><br><span class="line"><span class="meta">@app.route('/page=&lt;page&gt;', methods = ['GET', 'POST'])</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">index</span><span class="params">(page=<span class="number">1</span>)</span>:</span></span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">return</span> ...</span><br></pre></td></tr></table></figure><p>这样将两个路由都指向index页面，且当page没有传入时（即请求主页时）默认为第一页，此时url为<code>/</code></p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;最近学习flask的过程中，遇到一个问题。&lt;br&gt;进入首页页面，显示文章列表，文章列表是做了分页的，那么url应该是&lt;code&gt;/page=&amp;lt;page&amp;gt;&lt;/code&gt;这样的，&lt;br&gt;那么第一页也就是首页的路径应该是&lt;code&gt;/&lt;/code&gt;还是&lt;code&gt;/p
+      
+    
+    </summary>
+    
+      <category term="python" scheme="http://yoursite.com/categories/python/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>windows激活python虚拟环境</title>
+    <link href="http://yoursite.com/2017/08/08/windows%E6%BF%80%E6%B4%BBpython%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83/"/>
+    <id>http://yoursite.com/2017/08/08/windows激活python虚拟环境/</id>
+    <published>2017-08-08T02:50:58.000Z</published>
+    <updated>2017-08-08T03:06:06.935Z</updated>
+    
+    <content type="html"><![CDATA[<p>正常情况下：<br>如果使用bash命令行（linux和mac os x用户）：<br><code>source venv/bin/activate</code><br>如果使用微软Windows系统：<br><code>venv\Scripts\acrivate</code></p><p>我的电脑是Windows的可是执行命令不能成功激活，查找了原因之后才知道因为我用的是GitBash，GitBash是典型的Linux的风格，需要按照Linux的写法+Windows的路径才行。<br><code>source venv/Scripts/activate</code>  </p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;正常情况下：&lt;br&gt;如果使用bash命令行（linux和mac os x用户）：&lt;br&gt;&lt;code&gt;source venv/bin/activate&lt;/code&gt;&lt;br&gt;如果使用微软Windows系统：&lt;br&gt;&lt;code&gt;venv\Scripts\acrivate&lt;/cod
+      
+    
+    </summary>
+    
+      <category term="python" scheme="http://yoursite.com/categories/python/"/>
+    
+    
+  </entry>
+  
+</feed>

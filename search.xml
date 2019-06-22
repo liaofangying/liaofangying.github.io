@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title><![CDATA[在flask中使用mysql]]></title>
+    <url>%2F2019%2F06%2F22%2F%E5%9C%A8flask%E4%B8%AD%E4%BD%BF%E7%94%A8mysql%2F</url>
+    <content type="text"><![CDATA[最近在看Miguel Grinberg写的《Flask Web开发》，看到数据库这一部分。发现讲的是SQLAlchemy，感觉很是抽象，于是决定不跟着书上的这部分内容走了，改用Flask+MySQL。 1.安装Flask-MySQL模块使用pip进行安装pip install Flask-MySQL 2.创建测试表格这里可以通过命令行创建，也可以通过GUI工具创建，只要达到目的就行。我这里是在本地数据库进行的创建。创建sql脚本如下： 1CREATE DATABASE flaskdata; 123456USE flaskdata;CREATE TABLE `roles` ( `roleId` int(11) NOT NULL AUTO_INCREMENT, `roleName` varchar(100) NOT NULL, PRIMARY KEY (`roleId`)); 12345678USE flaskdata;CREATE TABLE `users` ( `userId` int(11) NOT NULL AUTO_INCREMENT, `userName` varchar(100) NOT NULL, `passWord` varchar(40) NOT NULL, `roleId` int(11) NOT NULL, PRIMARY KEY (`userId`)); 3.插入数据123456INSERT INTO `flaskdata`.`roles`(`roleId`,`roleName`)VALUES(1,'admin'); 12345678910INSERT INTO `flaskdata`.`users`(`userId`,`userName`,`passWord`,`roleId`)VALUES(1,'bigfire','123456',1); 4.进行连接并查询1234567891011121314151617181920212223242526from flask import Flaskfrom flaskext.mysql import MySQLmysql = MySQL()app = Flask(__name__)app.config['SECRET_KEY'] = 'hard to guess string'app.config['MYSQL_DATABASE_USER'] = 'root'app.config['MYSQL_DATABASE_PASSWORD'] = ''app.config['MYSQL_DATABASE_DB'] = 'FlaskData'app.config['MYSQL_DATABASE_HOST'] = 'localhost'mysql.init_app(app)@app.route('/')def index(): message = '' cursor = mysql.connect().cursor() cursor.execute("SELECT * from users where userName = 'bigfire' and passWord = '123456'") data = cursor.fetchone() if data is None: message = 'wrong' else: message = 'right' return message if __name__ == '__main__': app.run() 5.启动程序启动该程序，访问localhost:5000 可以看到返回right]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[简单python程序的目录结构]]></title>
+    <url>%2F2018%2F01%2F11%2F%E7%AE%80%E5%8D%95python%E7%A8%8B%E5%BA%8F%E7%9A%84%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84%2F</url>
+    <content type="text"><![CDATA[学习并使用python有一段时间了，虽然能够写python达到想要目的，但是一直没有关注过一个应用程序应该有的目录结构。 在测试工作中，经常需要写一些小工具来造测试数据或者帮助测试，虽然代码量很小，我之前都将所有的代码写在一个文件中，也不习惯写成方法调用，所以往往会造成代码不能复用、可读性低、通篇很多重复的代码、配置参数也是满篇都是很不方便找，并且执行程序也很麻烦需要一个个的先后执行，非常不利于维护和使用。于是尝试了进行目录结构化，下面以最近写的一个小程序为例： insert_testdata/insert_testdata: 存放项目的所有源代码。business中存放业务逻辑代码，database中存放连接和操作数据库的代码，（还可以有test文件存放单元测试代码）程序入口为main.py insert_testdata/setting: 存放一些配置的参数。如：连接数据库的信息，可以在该文件中配置测试环境或是生产环境的数据量连接信息 requirements.txt: 存放软件依赖的外部Python包列表。（方便读者明确项目使用了哪些Python包。这个文件的格式是每一行包含一个包依赖的说明，通常是flask&gt;=0.10这种格式，要求是这个格式能被pip识别，这样就可以简单的通过 pip install -r requirements.txt来把所有Python包依赖都装好了。） README: 项目说明文件（包含：1.软件定位，软件的基本功能。2.运行代码的方法: 安装环境、启动命令等。3.简要的使用说明。4.代码目录结构说明，更详细点可以说明软件的基本原理。5.常见问题说明。） 希望自己以后都养成目录结构化的好习惯，一步步的变得越来越规范和专业加油加油ヾ(๑╹◡╹)ﾉ”]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[postman通过interceptor插件使用Chrome浏览器的cookie]]></title>
+    <url>%2F2017%2F12%2F01%2Fpostman%E9%80%9A%E8%BF%87interceptor%E6%8F%92%E4%BB%B6%E4%BD%BF%E7%94%A8Chrome%E6%B5%8F%E8%A7%88%E5%99%A8%E7%9A%84cookie%2F</url>
+    <content type="text"><![CDATA[最近在做接口自动化测，本来打算用jmeter进行测试的。但是因为是测单个的请求比较简单，同时发现新版的postman已经做得很智能了，用来做接口自动化非常的方便，于是选择了postman。 下载了postman客户端后进行发送请求发现老是cookie设置不生效，然后找到了interceptor这个插件，使用interceptor可以直接使用chrome浏览器的cookie，还可以筛选指定host的cookie，真是太方便了啦。 一.安装interceptor安装postman及interceptor插件的步骤就省略啦，网上很多教程 二.interceptor使用方法（这里假定你已经启动了该插件）1.点击chrome浏览器右上角interceptor图标 点击开关按钮打开interceptor 如果需要测试特定网站，可在Filter requests中设置。Filter requests默认是“.*”，表示捕获所有的网站。例如如果你只想要捕获Google，可以在Filter requests里输入“Google”，点击apply filter保存并应用。 在chrome中进行操作，打开Google，进行搜索。 打开 interceptor。可以看到 “last 10 requests“。 打开Postman，可以看到“History”显示chrome中进行的请求。 然后就可以在Postman对这些 request进行过滤，修改]]></content>
+      <categories>
+        <category>test</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[解决win10中使用vpn不能连接外网]]></title>
+    <url>%2F2017%2F10%2F26%2F%E8%A7%A3%E5%86%B3win10%E4%B8%AD%E4%BD%BF%E7%94%A8vpn%E4%B8%8D%E8%83%BD%E8%BF%9E%E6%8E%A5%E5%A4%96%E7%BD%91%2F</url>
+    <content type="text"><![CDATA[假定这里已经成功连接VPN了，点击【VPN】&gt;【网络和共享中心】 点击【Internet选项】 点击【连接】&gt;【设置】 点击【属性】 点击【网络】，选择Internet协议版本，点击【属性】 点击【高级】 撤销勾选“在远程网络上使用默认网关”即可]]></content>
+      <categories>
+        <category>other</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[使用pep8检查python代码规范]]></title>
+    <url>%2F2017%2F10%2F24%2F%E4%BD%BF%E7%94%A8pep8%E6%A3%80%E6%9F%A5python%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83%2F</url>
+    <content type="text"><![CDATA[一.使用pip安装pep8$pip install -U pep8 二.测试自己写的代码：1.$ pep8 --first app.py该命令可以显示每一个错误的具体位置 2.$ pep8 --show-source --show-pep8 app.py该命令可以显示每一个错误和警告对应的代码，还可以给出正确的写法 3.$ pep8 --statistics -qq xxx/xxx该命令可以检测一个项目的质量]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[mysql中避免insert重复记录]]></title>
+    <url>%2F2017%2F10%2F18%2Fmysql%E4%B8%AD%E9%81%BF%E5%85%8Dinsert%E9%87%8D%E5%A4%8D%E8%AE%B0%E5%BD%95%2F</url>
+    <content type="text"><![CDATA[1.使用IGNORE如果主键primary或者唯一索引unique区分了记录的唯一性，避免重复插入记录 1INSERT IGNORE INTO `xxx` (`xxx`, `xxx`, `xxx`) VALUES (&apos;xxx&apos;, &apos;xxx&apos;, &apos;xxx&apos;); 如果有重复记录就忽略新纪录 2.使用REPLACE1REPLACE INTO `xxx` (`xxx`, `xxx`, `xxx`) VALUES (&apos;xxx&apos;, &apos;xxx&apos;, &apos;xxx&apos;); 如果旧记录与新记录相同，则删除旧记录，插入新记录]]></content>
+      <categories>
+        <category>mysql</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[最近...]]></title>
+    <url>%2F2017%2F10%2F17%2F%E6%9C%80%E8%BF%91%2F</url>
+    <content type="text"><![CDATA[已经一个多月没有更新博客了，这段时间也没有学习什么。公司项目开始迭代，有在写用例和测试，虽然还是剩下了很多空余的时间，自己也没有利用好这些时间来学习。我知道这样的自己很不好… 我也不知道怎么办… 又陷入了迷茫…干脆记录一下自己最近的生活吧… 做测试已经1年半了，现在这家公司也待了1年了，这1年自己也学了很多东西，做了一些东西，内心是有成就感的。但是经常有的是一种不安，因为就我一个测试，所有不会的东西都是自己去学，做得也不规范吧… 也没有认识的测试大牛可以指点一下，应该向什么方向发展？我也不知道…. 8月份和前男友分手，心情跌倒了低谷，很消极。这段时间也没能静下心来学习，总是会想起以前的事情，想着想着就哭了…. 听了500遍《囍帖街》也没能忘掉… 重拾了健身，两个月，加了很多运动量，很累，出了很多汗，身体很痛。虐完身体回家洗洗希望就可以早点睡着。嗯，现在不会那么频繁的想起以前的事情了，身体也好了很多。减掉了12斤脂肪，增加了4斤肌肉。虽然自己看不出来有什么变化，但是看到我的人都说我瘦了 ヾ(๑╹◡╹)ﾉ”，希望自己能再瘦一点，再好看一点 工资没有涨，每个月还是月光，没有一点积蓄。很多想吃的东西舍不得去吃，很多想买的东西没能买下来，很多想去的地方也不能去，看到别人的生活也只能是羡慕。依旧会为房租发愁，为后面的生活发愁。这样的生活，我好怕看不到尽头，会不会一辈子就是这样了…. 每次回家走出地铁，原来外面的天都黑了，天气凉了，心里感觉很空很空… 我很想有一个家，真的很想。昨天晚上做了一个梦，梦见自己去纹身了，纹了两个，一个在腋窝下方胸部旁边，是个英文字母“father”，另一个在右肩，包裹住了圆圆的肩部，好像是个圆形的图案，但是实在想不起是什么图案了。只记得梦中纹“father”的时候特别痛…. 我也不知道为什么是这个字母… 可能是太渴望得到家庭的温暖了吧 也许要去做一个手术，也许还是只有我一个人去。现在还没有钱去医院，也不知道该不该告诉家里的人，也不知道什么时候才有钱去。我一个人我也很害怕啊。不知道手术会有多难受。 我每天有好多无聊的、新鲜的话想说想去分享，但是不知道和谁去说…]]></content>
+      <categories>
+        <category>叨叨叨</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[使用Xpath Helper解析页面获得元素定位]]></title>
+    <url>%2F2017%2F09%2F07%2F%E4%BD%BF%E7%94%A8Xpath-Helper%E8%A7%A3%E6%9E%90%E9%A1%B5%E9%9D%A2%E8%8E%B7%E5%BE%97%E5%85%83%E7%B4%A0%E5%AE%9A%E4%BD%8D%2F</url>
+    <content type="text"><![CDATA[昨天遇到一个问题，一下午都没有解决。就是一个列表页面，我需要点击列表中的某一项，该元素没有id和name，我不断尝试了css和Xpath的方法，始终没能成功定位。如果使用Xpath的路径定位肉眼去看实在太难了，还好有Xpath Helper这么一个工具可以帮助我们自动获取元素路径。 1.Xpath Helper是Chrome浏览器的一个插件，首先在Chrome商店下载安装： 2.然后可以看到浏览器的右上角图标，表示成功安装了该插件： 3.重启浏览器后点击该图标后，页面上方会出现黑色的框，此时按住键盘的Shift键，鼠标移至你需要定位的点。如图我要定位页面中的“中港 CC PARK”，上方左边就是该元素的绝对路径了，上方右边就是定位显示的文本内容。 4.当然这绝对路径太繁杂了，可以简化一下修改为相对路径，且rf只支持绝对路径。如图： 5.最后拷贝进ride，能成功点击啦~ （注意这个案例中class属性里面的selected应该去掉，因为自动化操作的时候鼠标未经过该元素是未被选中的状态）]]></content>
+      <categories>
+        <category>Robot Framework</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[RF+S2L中关于元素定位]]></title>
+    <url>%2F2017%2F09%2F06%2FRF-S2L%E4%B8%AD%E5%85%B3%E4%BA%8E%E5%85%83%E7%B4%A0%E5%AE%9A%E4%BD%8D%2F</url>
+    <content type="text"><![CDATA[1.使用id、name进行定位使用id是最方便的，但是并不是所有的页面的每一个元素都有id的。如果没有id的话，就可以使用name，但是name是可以同名的，可以有多个元素使用同一个name。所以需要使用其他方法来进行定位。使用name定位： 2.使用css进行定位id： css = #xxxclass: css = .xxxname: css = [name=xxx]type: css = [type=xxx]父子：css = span &gt; input标签：css = input例： 3.使用xpath进行定位路径： Xpath = /html/body/div[1]/div[4]/span/input元素：Xpath = //input[@id=’xxx’]Xpath = //span[@class=’xxx’]/inputXpath = //input[@class=’xxx’ and @id=’xxx’]Xpath = //input[@class=’xxx’ or @id=’xxx’]]]></content>
+      <categories>
+        <category>Robot Framework</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[使用命令行执行robot framework测试用例]]></title>
+    <url>%2F2017%2F09%2F05%2F%E4%BD%BF%E7%94%A8%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%89%A7%E8%A1%8Crobot-framework%E6%B5%8B%E8%AF%95%E7%94%A8%E4%BE%8B%2F</url>
+    <content type="text"><![CDATA[执行整个项目下的所有用例： pybot D:\projectname 执行某个suite中的所有用例：pybot D:\projectname\suitename 执行某一个用例：pybot --test casename D:\projectname\suitename 执行项目中指定标签的案例： pybot --include tagName D:\projectname]]></content>
+      <categories>
+        <category>Robot Framework</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[使用PhantomJS进行非GUI爬取斗鱼房间列表]]></title>
+    <url>%2F2017%2F09%2F04%2F%E4%BD%BF%E7%94%A8PhantomJS%E8%BF%9B%E8%A1%8C%E9%9D%9EGUI%E7%88%AC%E5%8F%96%E6%96%97%E9%B1%BC%E6%88%BF%E9%97%B4%E5%88%97%E8%A1%A8%2F</url>
+    <content type="text"><![CDATA[下载合适版本的PhantomJS，下载地址：http://phantomjs.org/download.html解压后进入bin目录，将phantomjs.exe放于与代码文件同一目录下，或者在代码self.driver = webdriver.PhantomJS()的括号中填入phantomjs.exe的绝对路径 12345678910111213141516171819202122232425262728293031323334353637383940#coding:utf-8import unittestfrom selenium import webdriverfrom bs4 import BeautifulSoupimport syssys.path.append("..")reload(sys)sys.setdefaultencoding("utf-8")class seleniumTest(unittest.TestCase): #初始化webdriver def setUp(self): self.driver = webdriver.PhantomJS() def testEle(self): driver = self.driver #driver.get获取浏览器加载完成后的源码 driver.get('http://www.douyu.com/directory/all') soup = BeautifulSoup(driver.page_source, 'xml') while True: titles = soup.find_all('h3', &#123;'class': 'ellipsis'&#125;) for title in titles: with open('text.txt', 'a') as f: f.write(title.get_text().strip().replace("\n", "") + '\n') #当最后一页不可点击时跳出循环 if driver.page_source.find('shark-pager-disable-next') != -1: break #点击跳转获取下一页 elem = driver.find_element_by_class_name('shark-pager-next') elem.click() soup = BeautifulSoup(driver.page_source, 'xml') def tearDown(self): print '=======================完成啦====================='if __name__ == "__main__": unittest.main()]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[使用Robot Framework连接mysql数据库进行自动化测试]]></title>
+    <url>%2F2017%2F08%2F28%2F%E4%BD%BF%E7%94%A8Robot-Framework%E8%BF%9E%E6%8E%A5mysql%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9B%E8%A1%8C%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95%2F</url>
+    <content type="text"><![CDATA[1.安装依赖库这里还是使用pip进行安装： 12$ pip install robotframework-DatabaseLibrary$ pip install pymysql 2.导入库 3.编写案列这里进行了数据的连接，查询，和新增 4.执行测试执行成功]]></content>
+      <categories>
+        <category>Robot Framework</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[Robot Framework成功导入库后执行Case提示找不到关键字]]></title>
+    <url>%2F2017%2F08%2F28%2FRobot-Framework%E6%88%90%E5%8A%9F%E5%AF%BC%E5%85%A5%E5%BA%93%E5%90%8E%E6%89%A7%E8%A1%8CCase%E6%8F%90%E7%A4%BA%E6%89%BE%E4%B8%8D%E5%88%B0%E5%85%B3%E9%94%AE%E5%AD%97%2F</url>
+    <content type="text"><![CDATA[使用DatabaseLibrary这个库连接数据库，一直报错 FAIL : No keyword with name ‘Connect To Database Using Custom Params’ found.Google了一圈也没找到原因，后来将库在Dictionary类型的Suite中导入改为在File类型的Suite中导入就对了，下面看一下详细的错误重现与解决过程吧 ⁄(⁄⁄•⁄ω⁄•⁄⁄)⁄ 一开始我是这样做的：将库在Dictionary类型的Suite中导入的：连接数据库的案列：执行案列，报错FAIL : No keyword with name ‘Connect To Database Using Custom Params’ found. 然后我将库在File类型的Suite中导入：执行，成功连接数据库： 可是按照作用域来说，将库在上一级Dictionary类型suite中导入也是可以的吧？因为这样导入后，我按F5查找关键字也是能找到关键字的。可是为什么执行案列却又报找不到关键字了？奇怪，不知道为什么了 (；´д｀)ゞ]]></content>
+      <categories>
+        <category>Robot Framework</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[使用RobotFramework+Selenium2Library再次执行case未显示log]]></title>
+    <url>%2F2017%2F08%2F25%2F%E4%BD%BF%E7%94%A8RobotFramework-Selenium2Library%E5%86%8D%E6%AC%A1%E6%89%A7%E8%A1%8Ccase%E6%9C%AA%E6%98%BE%E7%A4%BAlog%2F</url>
+    <content type="text"><![CDATA[使用RobotFramework+Selenium2Library第二次执行case未显示log，是因为我使用的是Chrome浏览器，运行一次后chromedriver.exe进程仍在运行中。所以应想办法将该进程杀掉。下面有三种方法： 每次运行后，进入任务管理器，手动结束该进程。 每次运行后，执行命令杀掉该进程。 1taskkill /f /im chromedriver.exe 将杀掉进程的代码封装进ride]]></content>
+      <categories>
+        <category>Robot Framework</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[使用pdb调试python程序]]></title>
+    <url>%2F2017%2F08%2F22%2F%E4%BD%BF%E7%94%A8pdb%E8%B0%83%E8%AF%95python%E7%A8%8B%E5%BA%8F%2F</url>
+    <content type="text"><![CDATA[官方文档：https://docs.python.org/3/library/pdb.html使用pdb的方式有两种，其中一种是在程序内部添加代码，这种方式和添加print差不多。再啰嗦一句，还有ipdb，ipdb是pdb的加强版，如果感兴趣可以再去研究。要注意的是ipdb只能在3.3以上的python版本中使用。 程序内部： 12from ipdb import set_traceset_trace() 使用命令行的方式： 1python -m pdb xxx.py 常用命令 enter 重复上次命令 c(ont(inue)) 继续 h(elp) 帮助 a(rgs) 打印当前函数的参数 j(ump) 让程序跳转到指定的行数 l(ist) 可以列出当前将要运行的代码块 n(ext) 让程序运行下一行，如果当前语句有一个函数调用，用 n 是不会进入被调用的函数体中的 p(rint) 最有用的命令之一，打印某个变量 pp 好看一点的p b(reak) 添加断点b 列出当前所有断点，和断点执行到统计次数b xx：当前脚本的xx行添加断点b filename:xx：脚本filename的xx行添加断点b function：在函数function的第一条可执行语句处添加断点 q(uit) 退出调试 r(eturn) 继续执行，直到函数体返回 s(tep) 跟 n 相似，但是如果当前有一个函数调用，那么 s 会进入被调用的函数体中 输入pdb不认识的命令，pdb会把他当做Python语句在当前环境下执行]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[flask+jinja2+bootstrap搭建博客]]></title>
+    <url>%2F2017%2F08%2F22%2Fflask-jinja2-bootstrap%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2%2F</url>
+    <content type="text"><![CDATA[这是我第一次学着写web程序，选择了flask这个轻量型的框架。 可算是差不多写完了，还是要有个仪式感，写篇博客纪念一下下~~嘻嘻 ٩(๑&gt;◡&lt;๑)۶ 代码地址：https://github.com/liaofangying/flasky_bigfire 这个web程序是我跟着《Flask Web开发》这本书做的，利用20多天的空闲时间完成的 整个程序包含登录、注册、修改密码、个人中心、文章、评论、关注、发表文章、预览、分页等功能 因为我对数据库要熟悉一点，所以采用了直接连接mysql数据库的方式，创建表的sql文件在根目录下 python版本为2.7 这当中很多部分我是没有按照书上来写的，因为有的地方对于没有基础的我来说实在难懂，不过书上涉及的功能，我按照自己方法也都写出来了，有不规范的地方，希望有一天自己能够返回回来进行优化 还是那句话，希望自己能够坚持学习，早日成为一名测试开发工程师，加油！ 所需依赖包： hashlib base64 time datetime flaskext.mysql markdown flask flask_bootstrap flask_moment flask_pagedown 执行controller目录下的view.py文件即可]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[mysql中的timestamp和datetime]]></title>
+    <url>%2F2017%2F08%2F16%2Fmysql%E4%B8%AD%E7%9A%84timestamp%E5%92%8Cdatetime%2F</url>
+    <content type="text"><![CDATA[今天在navicat mysql创建表的时候报错”1294 - Invalid ON UPDATE clause for ‘lastEditDate’ column”：后来才知道是因为timestamp的默认值是不能为空的，这里我们取系统当前时间CURRENT_TIMESTAMP(3) 以下参考自：http://lavasoft.blog.51cto.com/62575/280284 TIMESTAMP TIMESTAMP列必须有默认值，默认值可以为’0000-00-00 00:00:00’，但不能为null TIMESTAMP列不可以设置值，只能由数据库自动去修改 一个表可以存在多个TIMESTAMP列，但只有一个列会根据数据更新而改变数据库系统当前值（默认是第一个TIMESTAMP列），因此，一个表中有多个TIMESTAMP列，是没有一意义的，实际上一个表只设定一个TIMESTAMP列。 TIMESTAMP列的默认值是CURRENT_TIMESTAMP常量值，当记录数据发生变化的时候，TIMESTAMP列会自动将其值设定为CURRENT_TIMESTAMP。 TIMESTAMP列创建后的格式是:语句含义是，lastEditDate字段的默认值是CURRENT_TIMESTAMP，当纪录更新时候，自动将lastEditDate字段的值设置为CURRENT_TIMESTAMP。 1lastEditDate timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP 另外，下面的定义从语法角度是对的，但是没有意义，因为该字段的值不可更改，永远只能为默认值 1lastEditDate timestamp NOT NULL DEFAULT &apos;0000-00-00 00:00:00&apos; DATETIME DATETIME列可以设置为多个，默认可为null，可以手动设置其值 DATETIME列不可设置默认值 DATETIME列可以变相设置默认值，例如：通过触发器. 或者插入数据时，将DATETIME字段值设置为now()，这样可以做到了。一般创建表时用datetime，更新时用timestamp]]></content>
+      <categories>
+        <category>mysql</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[flask中关于cookie的设置]]></title>
+    <url>%2F2017%2F08%2F15%2Fflask%E4%B8%AD%E5%85%B3%E4%BA%8Ecookie%E7%9A%84%E8%AE%BE%E7%BD%AE%2F</url>
+    <content type="text"><![CDATA[设置cookie通过响应对象的set_cookie方法我们可以设置自定义cookie的内容和保存在客户端的时长: 1234567from flask import make_response@app.route('/all')def show_all(): response = make_response('hello bigfire!') response.set_cookie('name', 'bigfire', max_age = 30*24*60*60') return response 获取cookie123456from flask import request@app.route('/') def index(): name=request.cookies.get('name') return name 删除cookie 通过set_cookie的方法设置cookie的有效期为0 12345@app.route('/del_cookie') def del_cookie(): response=make_response('hello bigfire!') response.set_cookie('name','',expires=0) return response 通过delete_cookie删除cookie 12345@app.route('/del_cookie') def del_cookie(): response=make_response('hello bigfire!') response.delete_cookie('name') return response 直接在浏览器手动清除cookie]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[flask首页(第一页)设置默认url]]></title>
+    <url>%2F2017%2F08%2F14%2Fflask%E9%A6%96%E9%A1%B5-%E7%AC%AC%E4%B8%80%E9%A1%B5-%E8%AE%BE%E7%BD%AE%E9%BB%98%E8%AE%A4url%2F</url>
+    <content type="text"><![CDATA[最近学习flask的过程中，遇到一个问题。进入首页页面，显示文章列表，文章列表是做了分页的，那么url应该是/page=&lt;page&gt;这样的，那么第一页也就是首页的路径应该是/还是/page=1呢？一开始我是这样想的，首页（第一页）路径为/，然后重定向至/page=&lt;page&gt; 12345678@app.route('/', methods = ['GET', 'POST'])def index(): return redirect(url_for('index_page', page = 1)) @app.route('/page=&lt;page&gt;', methods = ['GET', 'POST'])def index_page(page=page): ... return ... 后来仔细一想这样做不好，因为首页一般来说是不会显示页数的，所以应该将第一页的url写成不带有页码。并且像这样写的话页面太多了，不利于后期维护。所以将代码做了如下修改： 12345@app.route('/', methods = ['GET', 'POST'])@app.route('/page=&lt;page&gt;', methods = ['GET', 'POST'])def index(page=1): ... return ... 这样将两个路由都指向index页面，且当page没有传入时（即请求主页时）默认为第一页，此时url为/]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[windows激活python虚拟环境]]></title>
+    <url>%2F2017%2F08%2F08%2Fwindows%E6%BF%80%E6%B4%BBpython%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%2F</url>
+    <content type="text"><![CDATA[正常情况下：如果使用bash命令行（linux和mac os x用户）：source venv/bin/activate如果使用微软Windows系统：venv\Scripts\acrivate 我的电脑是Windows的可是执行命令不能成功激活，查找了原因之后才知道因为我用的是GitBash，GitBash是典型的Linux的风格，需要按照Linux的写法+Windows的路径才行。source venv/Scripts/activate]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[未修改文件时git status提示modified]]></title>
+    <url>%2F2017%2F08%2F08%2F%E6%9C%AA%E4%BF%AE%E6%94%B9%E6%96%87%E4%BB%B6%E6%97%B6git-status%E6%8F%90%E7%A4%BAmodified%2F</url>
+    <content type="text"><![CDATA[有时候git clone下来后，文件的权限不对，这样git会发现很多的改变，事实上是不需要提交的。通过下面的配置可以让git忽略这种情况执行命令：git config core.fileMode false]]></content>
+      <categories>
+        <category>git</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[为什么python的性能差？]]></title>
+    <url>%2F2017%2F08%2F08%2F%E4%B8%BA%E4%BB%80%E4%B9%88python%E7%9A%84%E6%80%A7%E8%83%BD%E5%B7%AE%EF%BC%9F%2F</url>
+    <content type="text"><![CDATA[注：本文除非特殊指明，”python”都是代表CPython，即C语言实现的标准python，且本文所讨论的是版本为2.7的CPython。 当我们提到一门编程语言的效率时：通常有两层意思。第一是开发效率，这是对程序员而言，完成编码所需要的时间；另一个是运行效率，这是对计算机而言，完成计算任务所需要的时间。编码效率和运行效率往往是鱼与熊掌的关系，是很难同时兼顾的。不同的语言会有不同的侧重，python语言毫无疑问更在乎编码效率，life is short，we use python。但是python运算效率低，具体是什么原因呢，下列罗列一些 1. python是动态语言一个变量所指向对象的类型在运行时才确定，编译器做不了任何预测，也就无从优化。举一个简单的例子： r = a + b。 a和b相加，但a和b的类型在运行时才知道，对于加法操作，不同的类型有不同的处理，所以每次运行的时候都会去判断a和b的类型，然后执行对应的操作。而在静态语言如C++中，编译的时候就确定了运行时的代码。另外一个例子是属性查找，关于具体的查找顺序在《python属性查找》中有详细介绍。简而言之，访问对象的某个属性是一个非常复杂的过程，而且通过同一个变量访问到的python对象还都可能不一样（参见Lazy property的例子）。而在C语言中，访问属性用对象的地址加上属性的偏移就可以了。 2. python是解释执行不支持JIT（just in time compiler即时编译） 3. python中一切都是对象每个对象都需要维护引用计数，增加了额外的工作。(在引用计数中，每一个对象负责维护对象所有引用的计数值。当一个新的引用指向对象时，引用计数器就递增，当去掉一个引用时，引用计数就递减。当引用计数到零时，该对象就将释放占有的资源。） 4. python GILGIL(Global Interpreter Lock全局解释器锁)是Python最为诟病的一点，因为GIL，python中的多线程并不能真正的并发。如果是在IO BOUND的业务场景，这个问题并不大，但是在CPU BOUND的场景，这就很致命了。即使在单线程，GIL也会带来很大的性能影响，因为python每执行100个opcode（默认，可以通过sys.setcheckinterval()设置）就会尝试线程的切换。 5. 垃圾回收这个可能是所有具有垃圾回收的编程语言的通病。python采用标记和分代的垃圾回收策略，每次垃圾回收的时候都会中断正在执行的程序，造成所谓的顿卡。 参考自http://mp.weixin.qq.com/s/2FzB-a-NW5c2IKqtWi5mUA]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[使用Flask-WTF渲染字段的样式]]></title>
+    <url>%2F2017%2F08%2F03%2F%E4%BD%BF%E7%94%A8Flask-WTF%E6%B8%B2%E6%9F%93%E5%AD%97%E6%AE%B5%E7%9A%84%E6%A0%B7%E5%BC%8F%2F</url>
+    <content type="text"><![CDATA[在flask项目中编写提交表单部分时，发现表单的样式都是默认的。在python代码中最多也只能设置限制输入的数据、类型长度、提示语之类的。如果我想改变表单的样式该怎么办呢？ 1. 默认的代码123&lt;div class="container"&gt; &#123;&#123; wtf.quick_form(form) &#125;&#125;&lt;/div&gt; 界面显示：可以看到默认的情况下文本输入框是很宽很矮的 2. 使用bootstrap进行渲染这里查阅的bootstrap控件尺寸的设置方法 123&lt;div class="col-md-4"&gt; &#123;&#123; wtf.quick_form(form) &#125;&#125;&lt;/div&gt; 界面显示：可以看到文本输入框变窄了，但是没有办法使用bootstrap将其变高 3. 自定义WTF的样式最后还是只能想办法自定义Flask-WTF的样式 &lt;div class="container"&gt; &lt;form method="POST"&gt; {{ form.hidden_tag() }} {{ form.content.label }} &lt;div class='form-group'&gt; {{ form.content(cols=140,rows=10) }} &lt;/div&gt; {{ form.submit }} &lt;/form&gt; &lt;/div&gt; 界面显示：可以看到终于变高了，像遇到是写博客内容之类的时候，就需要将文本输入框变高，这个方法就很适用了。 （注：这里的content输入框我用的是PageDownField，如果是StringField好像这样自定义不起作用，具体怎么办后面再研究吧- -。）]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[将Markdown转换为HTML]]></title>
+    <url>%2F2017%2F08%2F01%2F%E5%B0%86Markdown%E8%BD%AC%E6%8D%A2%E4%B8%BAHTML%2F</url>
+    <content type="text"><![CDATA[安装markdown库：pip intsall markdown 核心代码： 123456from markdown import markdowntxt_md = "# a"txt_html = markdown(txt_md)print txt_md, txt_html # # a, &lt;h1&gt;a&lt;/h1&gt;]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[如何严谨地做性能测试]]></title>
+    <url>%2F2017%2F07%2F28%2F%E5%A6%82%E4%BD%95%E4%B8%A5%E8%B0%A8%E5%9C%B0%E5%81%9A%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%2F</url>
+    <content type="text"><![CDATA[一般来说，性能测试要统一考虑这么几个因素：Thoughput吞吐量，Latency响应时间，资源利用（CPU/MEM/IO/Bandwidth…），成功率，系统稳定性。 你得定义一个系统的响应时间latency，建议是TP99（TP99指99%的请求时间），以及成功率。比如：99.9%的响应时间必需在1ms之内，平均响应时间在1ms以内，100%的请求成功。 在这个响应时间的限制下，找到最高的吞吐量。测试用的数据，需要有大中小各种尺寸的数据，并可以混合。最好使用生产线上的测试数据。 在这个吞吐量做Soak Test（浸泡测试），比如：使用第二步测试得到的吞吐量连续7天的不间断的压测系统。然后收集CPU，内存，硬盘/网络IO，等指标，查看系统是否稳定，比如，CPU是平稳的，内存使用也是平稳的。那么，这个值就是系统的性能 找到系统的极限值。比如：在成功率100%的情况下（不考虑响应时间的长短），系统能坚持10分钟的吞吐量。 做Burst Test。用第二步得到的吞吐量执行5分钟，然后在第四步得到的极限值执行1分钟，再回到第二步的吞吐量执行5钟，再到第四步的权限值执行1分钟，如此往复个一段时间，比如2天。收集系统数据：CPU、内存、硬盘/网络IO等，观察他们的曲线，以及相应的响应时间，确保系统是稳定的。 低吞吐量和网络小包的测试。有时候，在低吞吐量的时候，可能会导致latency上升，比如TCP_NODELAY的参数没有开启会导致latency上升，而网络小包会导致带宽用不满也会导致性能上不去，所以，性能测试还需要根据实际情况有选择的测试一下这两种场景。 （注：第二步得到的吞吐量乘以66.7%来做为系统的软报警线，80%做为系统的硬报警线，而极限值仅仅用来扛突发的peak（峰值）） 转自性能测试应该怎么做？]]></content>
+      <categories>
+        <category>test</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[使用forgerypy创建测试数据]]></title>
+    <url>%2F2017%2F07%2F26%2F%E4%BD%BF%E7%94%A8forgerypy%E5%88%9B%E5%BB%BA%E6%B5%8B%E8%AF%95%E6%95%B0%E6%8D%AE%2F</url>
+    <content type="text"><![CDATA[在测试准备阶段，或者是开发阶段，我们经常需要准备测试数据，像用户名，账号，邮箱，IP，地址等等…..这个时候就可以使用forgerypy来随机生成测试数据了。 安装forgerypy：1pip install forgerypy 使用：在flask中连接mysql数据库的方法请参考之前写的在flask中使用mysql 12345678910111213import forgery_py...def addtestdata(): for i in range(10): content = forgery_py.lorem_ipsum.paragraphs() sqlStatement = "INSERT INTO `posts` (`postContent`, `userID`) VALUES (%s, 1);" connection = mysql.connect() cursor = connection.cursor() cursor.execute(sqlStatement, content) connection.commit() return 'ok' 使用这个方法可以每次向数据库插入10条数据，这里生成的是随机的字符串段落。效果如下： 其他使用方法：12345678910111213141516171819202122232425262728293031323334353637383940import forgery_py#街道地址forgery_py.address.street_address() #'4358 Shopko Junction'#颜色forgery_py.basic.hex_color() #'3F0A59'#信用卡forgery_py.credit_card.type() #'Visa'#货币forgery_py.currency.description() #'Slovenia Tolars'#日期forgery_py.date.date() #datetime.date(2012, 7, 27)#邮箱forgery_py.email.address() #'debra@tavu.edu#IP地址 forgery_py.internet.ip_v4() #'150.64.188.100''#标题forgery_py.lorem_ipsum.title() # 'Pretium nam rhoncus ultrices!'#金额 forgery_py.monetary.money() #'$4.50'#名字forgery_py.name.full_name() #'Mary Peters'#语言forgery_py.personal.language() #'Hungarian'#数字forgery_py.russian_tax.person_inn() #'768974545606'#时区forgery_py.time.zone() #'Melbourne' 详细使用方法参考官方文档：https://pilosus.github.io/ForgeryPy3/]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[python向mysql写入timestamp类型的数据]]></title>
+    <url>%2F2017%2F07%2F26%2Fpython%E5%90%91mysql%E5%86%99%E5%85%A5timestamp%E7%B1%BB%E5%9E%8B%E7%9A%84%E6%95%B0%E6%8D%AE%2F</url>
+    <content type="text"><![CDATA[在flask中连接mysql数据库的方法请参考之前写的在flask中使用mysql使用datetime的fromtimestamp方法获得时间戳格式的时间，然后再以传参的形式写入数据库下面写了一个注册账号的小demo， 其中inDate字段类型为timestamp，写入方法如下： 12345678910111213141516import timefrom datetime import datetimedef getnowtime(): now = time.time() nowTime = datetime.fromtimestamp(now).strftime('%Y-%m-%d %H:%M:%S') return nowTime def adduser(userName, passWord): nowTime = getnowtime() sqlStatement = "INSERT INTO `users` (`userName`, `passWord`, `roleID`, `inDate`) VALUES (%s, %s, 2, %s);" connection = mysql.connect() cursor = connection.cursor() cursor.execute(sqlStatement, (userName, passWord, nowTime)) connection.commit() return "ok"]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[python防止sql注入]]></title>
+    <url>%2F2017%2F07%2F20%2Fpython%E9%98%B2%E6%AD%A2sql%E6%B3%A8%E5%85%A5%2F</url>
+    <content type="text"><![CDATA[错误用法： 12sqlStatement = "SELECT * FROM users WHERE userName = '" + userName + "' AND passWord = '" + passWord + "';"cur.execute(sqlStatement) 这种拼接字符串的方法很容易导致sql注入漏洞。 正确用法：execute() 函数本身有接受sql语句参数位的，可以通过python自身的函数处理参数。 12sqlStatement = "SELECT * FROM users WHERE userName = %s AND passWord = %s;"cursor.execute(sqlStatement, (userName, passWord)) 使用参数带入的方法，函数内部会对传入的参数值进行相应的处理，防止sql注入。]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[python调用不同层级目录中的模块的方法]]></title>
+    <url>%2F2017%2F07%2F20%2Fpython%E8%B0%83%E7%94%A8%E4%B8%8D%E5%90%8C%E5%B1%82%E7%BA%A7%E7%9B%AE%E5%BD%95%E4%B8%AD%E7%9A%84%E6%A8%A1%E5%9D%97%E7%9A%84%E6%96%B9%E6%B3%95%2F</url>
+    <content type="text"><![CDATA[在编码过程中，如果想要调用自己写的依赖包，有以下4中情况： 1.调用同级目录下的模块如图如果想要在bb.py中调用cc.py中的所有模块，可在bb.py中这样写： 1import cc 或者 1from cc import * 2.调用子级目录下的模块 如图如果想要在aa.py中调用B目录下bb.py中的所有模块，可以在aa.py中这样写： 1import B.bb 或者 1from B.aa import * 3.调用与父级目录同级的模块 如图如果想要在bb.py中调用与它的上级目录同级的aa.py中的所有模块，可以在bb.py中这样写： 1234import syssys.path.append("..")from aa import * 4.调用父级目录的同级目录下的模块 如图如果想要在bb.py中调用它父级目录的同级目录下的dd.py中的所有模块，则需要在B目录下新建一个空文件__init__.py，然后在bb.py中这样写： 1import A.dd]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[被测系统资源监控]]></title>
+    <url>%2F2017%2F07%2F18%2F%E8%A2%AB%E6%B5%8B%E7%B3%BB%E7%BB%9F%E8%B5%84%E6%BA%90%E7%9B%91%E6%8E%A7%2F</url>
+    <content type="text"><![CDATA[性能测试数据收集中很重要的一部分是被测系统的资源使用情况，因为系统性能和资源使用是密切相关的，主要的目的有下面几个方面： 了解在当前压力下，系统各项资源的使用情况，也可以用于横向对比。通过资源使用情况的分析可以看出当前是否测出了系统最大的性能。 是否有某项资源的使用已经到达上限，成为瓶颈。 是否有其他非被测系统的模块占用了资源。 通常在性能测试中，测试人员都会去收集CPU、内存、网络等服务器资源使用情况，但是如果只是笼统地给出一个百分比是不够的，需要进一步细分来提供更多有参考价值的数据。 因此如果只是简单地用wrk这类测试，记得关注被测试系统的cpu、io(网络/文件)、内存等使用情况。对于互联网的应用，特别要关注网络连接数。 系统资源瓶颈 峰值流量估算可根据历史日均压力、日最高压力等信息，估算出未来几年的日均以及日最高压力。再通过一些通用估算方法、如二八原则（80%的工作在20%时间内完成，相当于2小时完成一天8小时的工作量），将日压力转换成峰值压力。 假设系统日均pv 8000w，一天按照4w秒算，8000w/4w=2000，平均大概2000QPS，按28原则算，峰值的qps则有2000*4=8000 QPS （转自https://segmentfault.com/a/1190000008219543#articleHeader4）]]></content>
+      <categories>
+        <category>test</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[性能测试准备工作之Linux系统相关参数设置]]></title>
+    <url>%2F2017%2F07%2F18%2F%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C%E4%B9%8BLinux%E7%B3%BB%E7%BB%9F%E7%9B%B8%E5%85%B3%E5%8F%82%E6%95%B0%E8%AE%BE%E7%BD%AE%2F</url>
+    <content type="text"><![CDATA[不同的机器、操作系统、web服务器以及相关参数等的不同，也会影响性能测试的结果。有必要在测试前对参数进行一下配置。参考做一个正确的性能测试以及高负载系统，网络参数调整进行调优。 /etc/sysctl.conf是一个允许你改变正在运行中的Linux系统的接口。编辑完成后，使用命令“/sbin/sysctl –p”使之立即生效。 这里列一下操作系统的几个重要参数。 fs.file-max = 999999 net.ipv4.tcp_tw_reuse = 1 net.ipv4.tcp_keepalive_time = 600 net.ipv4.tcp_fin_timeout = 30 net.ipv4.tcp_max_tw_buckets = 5000 net.ipv4.ip_local_port_range = 1024 61000 net.ipv4.tcp_rmem = 4096 32768 262142 net.ipv4.tcp_wmem = 4096 32768 262142 net.core.netdev_max_backlog = 8096 net.core.rmem_default = 262144 net.core.wmem_default = 262144 net.core.rmem_max = 2097152 net.core.wmem_max = 2097152 net.ipv4.tcp_syncookies = 1 net.ipv4.tcp_max_syn.backlog=1024 file-max：这个参数表示进程（比如一个worker进程）可以同时打开的最大句柄数，这个参数直接限制最大并发连接数，需根据实际情况配置。 tcp_tw_reuse：这个参数设置为1，表示允许将TIME-WAIT状态的socket重新用于新的TCP连接，这对于服务器来说很有意义，因为服务器上总会有大量TIME-WAIT状态的连接。 - tcp_keepalive_time：这个参数表示当keepalive启用时，TCP发送keepalive消息的频度。默认是2小时，若将其设置得小一些，可以更快地清理无效的连接。 tcp_fin_timeout：这个参数表示当服务器主动关闭连接时，socket保持在FIN-WAIT-2状态的最大时间。 tcp_max_tw_buckets：这个参数表示操作系统允许TIME_WAIT套接字数量的最大值，如果超过这个数字，TIME_WAIT套接字将立刻被清除并打印警告信息。该参数默认为180000，过多的TIME_WAIT套接字会使Web服务器变慢。 tcp_max_syn_backlog：这个参数表示TCP三次握手建立阶段接收SYN请求队列的最大长度，默认为1024，将其设置得大一些可以使出现Nginx繁忙来不及accept新连接的情况时，Linux不至于丢失客户端发起的连接请求。 ip_local_port_range：这个参数定义了在UDP和TCP连接中本地（不包括连接的远端）端口的取值范围。 net.ipv4.tcp_rmem：这个参数定义了TCP接收缓存（用于TCP接收滑动窗口）的最小值、默认值、最大值。 net.ipv4.tcp_wmem：这个参数定义了TCP发送缓存（用于TCP发送滑动窗口）的最小值、默认值、最大值。 netdev_max_backlog：当网卡接收数据包的速度大于内核处理的速度时，会有一个队列保存这些数据包。这个参数表示该队列的最大值。 rmem_default：这个参数表示内核套接字接收缓存区默认的大小。 wmem_default：这个参数表示内核套接字发送缓存区默认的大小。 rmem_max：这个参数表示内核套接字接收缓存区的最大大小。 wmem_max：这个参数表示内核套接字发送缓存区的最大大小。 tcp_syncookies：该参数与性能无关，用于解决TCP的SYN攻击。（转自https://segmentfault.com/a/1190000008219543#articleHeader4）]]></content>
+      <categories>
+        <category>test</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[使用pythonon+flask+jinja2报编码错误]]></title>
+    <url>%2F2017%2F07%2F13%2F%E4%BD%BF%E7%94%A8pythonon-flask%E6%8A%A5%E7%BC%96%E7%A0%81%E9%94%99%E8%AF%AF%2F</url>
+    <content type="text"><![CDATA[最近在学习flask，使用python2.7，在使用到flask中的flash，需要在模板中渲染flash时出现了编码的错误。 1UnicodeDecodeError: &apos;ascii&apos; codec can&apos;t decode byte 0xe5 in position 0: ordinal not in range(128) 查资料后知道是因为Jinja2内部使用的编码方式是Unicode，而Python2.x中的str其实是是字节串。只需要在python文件的前面加上如下代码即可 123import sysreload(sys)sys.setdefaultencoding(&quot;utf-8&quot;)]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[入门Robot Framework(4)——字符串处理]]></title>
+    <url>%2F2017%2F07%2F12%2F%E5%85%A5%E9%97%A8Robot-Framework-4-%E2%80%94%E2%80%94%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%A4%84%E7%90%86%2F</url>
+    <content type="text"><![CDATA[&emsp;&emsp;RF同样拥有拆分字符串为列表的方法，下面写了一个简单的小demo首先导入两个RF的内置库：在TestSuite中点击Library进行导入 TestCase: Text Edit: 12345678StringToLists $&#123;String&#125; Set Variable &quot;Big Fire&quot; Log $&#123;String&#125; @&#123;List&#125; Split String $&#123;String&#125; $&#123;SPACE&#125; $&#123;FirstWord&#125; Get From List $&#123;List&#125; 0 Log $&#123;FirstWord&#125; $&#123;SecondtWord&#125; Get From List $&#123;List&#125; 1 Log $&#123;SecondtWord&#125; 可以看到成功将“Big Fire”拆分为了[‘Big’, ‘Fire’]]]></content>
+      <categories>
+        <category>Robot Framework</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[入门Robot Framework(3)——条件判断]]></title>
+    <url>%2F2017%2F07%2F12%2F%E5%85%A5%E9%97%A8Robot-Framework-3-%E2%80%94%E2%80%94%E6%9D%A1%E4%BB%B6%E5%88%A4%E6%96%AD%2F</url>
+    <content type="text"><![CDATA[字符串比较 Text Edit: 123456789For001RunKeywordIf001 @&#123;LIST&#125; Set Variable a b c d : FOR $&#123;n&#125; IN @&#123;LIST&#125; \ RUN Keyword If &apos;$&#123;n&#125;&apos; == &apos;a&apos; log 1 \ ... ELSE IF &apos;$&#123;n&#125;&apos; == &apos;b&apos; log 2 \ ... ELSE IF &apos;$&#123;n&#125;&apos; == &apos;c&apos; log 3 \ ... ELSE log 4 Log Outside Loop log: 12345678Starting test: TestProject.ProcessControl.RunKeywordIf00120170712 14:48:46.615 : INFO : @&#123;LIST&#125; = [ a | b | c | d ]20170712 14:48:46.622 : INFO : 120170712 14:48:46.628 : INFO : 220170712 14:48:46.636 : INFO : 320170712 14:48:46.643 : INFO : 420170712 14:48:46.646 : INFO : Outside LoopEnding test: TestProject.ProcessControl.RunKeywordIf001 注意：1.变量${n}值为字符时，在判断条件中其需要加单引号或双引号2.在判断条件中，与变量${n}对比的字符常量也需要加单引号或双引号 数字比较 Text Edit: 12345678RunKeywordIf002 @&#123;LIST&#125; Set Variable 1 2 3 4 : FOR $&#123;n&#125; IN @&#123;LIST&#125; \ RUN Keyword If $&#123;n&#125; == 1 log a \ ... ELSE IF 1 &lt; $&#123;n&#125; &lt; 3 log b \ ... ELSE IF $&#123;n&#125; == 3 log c \ ... ELSE log d Log Outside Loop log: 12345678Starting test: TestProject.ProcessControl.RunKeywordIf00220170712 15:00:39.068 : INFO : @&#123;LIST&#125; = [ 1 | 2 | 3 | 4 ]20170712 15:00:39.074 : INFO : a20170712 15:00:39.077 : INFO : b20170712 15:00:39.083 : INFO : c20170712 15:00:39.088 : INFO : d20170712 15:00:39.091 : INFO : Outside LoopEnding test: TestProject.ProcessControl.RunKeywordIf002 布尔类型比较 Text Edit: 1234567RunKeywordIf003 @&#123;LIST&#125; Set Variable $&#123;true&#125; $&#123;false&#125; : FOR $&#123;n&#125; IN @&#123;LIST&#125; \ RUN Keyword If &apos;$&#123;n&#125;&apos; == &apos;$&#123;true&#125;&apos; log 1 \ ... ELSE IF &apos;$&#123;n&#125;&apos; == &apos;$&#123;false&#125;&apos; log 2 \ ... ELSE log 3 Log Outside Loop log: 123456Starting test: TestProject.ProcessControl.RunKeywordIf00320170712 15:02:55.359 : INFO : @&#123;LIST&#125; = [ True | False ]20170712 15:02:55.362 : INFO : 120170712 15:02:55.365 : INFO : 220170712 15:02:55.368 : INFO : Outside LoopEnding test: TestProject.ProcessControl.RunKeywordIf003 判断是否为列表中的元素 Text Edit: 1234567RunKeywordIf004 @&#123;LIST&#125; Create List jjjds haha bigfire $&#123;string&#125; Set Variable bigfire : FOR $&#123;n&#125; IN @&#123;LIST&#125; \ RUN Keyword If &apos;$&#123;n&#125;&apos; == &apos;$&#123;string&#125;&apos; log 1 \ ... ELSE log 0 Log Outside Loop log: 12345678Starting test: TestProject.ProcessControl.RunKeywordIf00420170712 15:04:47.901 : INFO : @&#123;LIST&#125; = [ jjjds | haha | bigfire ]20170712 15:04:47.903 : INFO : $&#123;string&#125; = bigfire20170712 15:04:47.906 : INFO : 020170712 15:04:47.908 : INFO : 020170712 15:04:47.911 : INFO : 120170712 15:04:47.914 : INFO : Outside LoopEnding test: TestProject.ProcessControl.RunKeywordIf004 两个列表相比较 Text Edit: 12345RunKeywordIf005 @&#123;LIST1&#125; Create List jjjds haha bigfire @&#123;LIST2&#125; Create List jjjds haha bigfire Run Keyword If @&#123;LIST1&#125; == @&#123;LIST2&#125; log 1 ... ELSE log 0 log: 12345Starting test: TestProject.ProcessControl.RunKeywordIf00520170712 15:06:55.514 : INFO : @&#123;LIST1&#125; = [ jjjds | haha | bigfire ]20170712 15:06:55.516 : INFO : @&#123;LIST2&#125; = [ jjjds | haha | bigfire ]20170712 15:06:55.518 : INFO : 1Ending test: TestProject.ProcessControl.RunKeywordIf005 两个列表中的元素相比较 Text Edit: 123456789RunKeywordIf006 @&#123;LIST1&#125; Create List jjjds haha bigfire @&#123;LIST2&#125; Create List jjjds haha bigfire222 Run Keyword If &apos;@&#123;LIST1&#125;[0]&apos; == &apos;@&#123;LIST2&#125;[0]&apos; log 1 ... ELSE log 0 Run Keyword If &apos;@&#123;LIST1&#125;[1]&apos; == &apos;@&#123;LIST2&#125;[1]&apos; log 1 ... ELSE log 0 Run Keyword If &apos;@&#123;LIST1&#125;[2]&apos; == &apos;@&#123;LIST2&#125;[2]&apos; log 1 ... ELSE log 0 log: 1234567Starting test: TestProject.ProcessControl.RunKeywordIf00620170712 15:09:15.164 : INFO : @&#123;LIST1&#125; = [ jjjds | haha | bigfire ]20170712 15:09:15.166 : INFO : @&#123;LIST2&#125; = [ jjjds | haha | bigfire222 ]20170712 15:09:15.169 : INFO : 120170712 15:09:15.171 : INFO : 120170712 15:09:15.174 : INFO : 0Ending test: TestProject.ProcessControl.RunKeywordIf006]]></content>
+      <categories>
+        <category>Robot Framework</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[入门Robot Framework(2)——循环控制]]></title>
+    <url>%2F2017%2F07%2F12%2F%E5%85%A5%E9%97%A8Robot-Framework-2-%E2%80%94%E2%80%94%E5%BE%AA%E7%8E%AF%E6%8E%A7%E5%88%B6%2F</url>
+    <content type="text"><![CDATA[&emsp;&emsp;Robot Framework提供了多种种循环方式，这里介绍三种循环方法的使用。本次演示也是在之前的例子上作的修改。 FOR IN 结构 1.直接将列表置于IN 之后 Text Edit: 12345678910For001 : FOR $&#123;n&#125; IN a b c \ Log $&#123;n&#125; \ Open Browser https://www.baidu.com/ Chrome \ Sleep 2 \ Input Text id = kw 大火 \ Click Button id = su \ Sleep 2 \ Close Browser Log Outside Loop 2.将列表在一开始就声明，然后在IN之后调用 Text Edit: 1234567891011For002 @&#123;LIST&#125; Set Variable a b c : FOR $&#123;n&#125; IN @&#123;LIST&#125; \ Log $&#123;LIST&#125; \ Open Browser https://www.baidu.com/ Chrome \ Sleep 2 \ Input Text id = kw 大火 \ Click Button id = su \ Sleep 2 \ Close Browser Log Outside Loop 3.多个循环变量 Text Edit: 12345678910111213For003 : FOR $&#123;NUMBER&#125; $&#123;TIME&#125; $&#123;FREQUENCY&#125; IN \ 1 1 1 \ 2 2 2 \ 3 3 3 \ Log $&#123;NUMBER&#125;-$&#123;TIME&#125;-$&#123;FREQUENCY&#125; \ Open Browser https://www.baidu.com/ Chrome \ Sleep 2 \ Input Text id = kw 大火 \ Click Button id = su \ Sleep 2 \ Close Browser Log Outside Loop FOR IN RANGE 结构 1.IN RANGE(x, y) Text Edit: 12345678910For004 : FOR $&#123;n&#125; IN RANGE 1 3 \ Log $&#123;n&#125; \ Open Browser https://www.baidu.com/ Chrome \ Sleep 2 \ Input Text id = kw 大火 \ Click Button id = su \ Sleep 2 \ Close Browser Log Outside Loop 2.IN RANGE(x) Text Edit: 12345678910For005 : FOR $&#123;n&#125; IN RANGE 3 \ Log $&#123;n&#125; \ Open Browser https://www.baidu.com/ Chrome \ Sleep 2 \ Input Text id = kw 大火 \ Click Button id = su \ Sleep 2 \ Close Browser Log Outside Loop 3.IN RANGE(x, y, z) Text Edit: 12345678910For006 : FOR $&#123;n&#125; IN RANGE 0 30 10 \ Log $&#123;n&#125; \ Open Browser https://www.baidu.com/ Chrome \ Sleep 2 \ Input Text id = kw 大火 \ Click Button id = su \ Sleep 2 \ Close Browser Log Outside Loop 不难理解，从log中可以看出RF中的range用法和python中是类似的。 EXIT LOOP 退出循环 1. Text Edit: 1234567891011121314For007 : FOR $&#123;NUMBER&#125; $&#123;TIME&#125; $&#123;FREQUENCY&#125; IN ... 1 1 1 ... 2 2 2 ... 3 3 3 \ Run Keyword If $&#123;NUMBER&#125;-$&#123;TIME&#125;-$&#123;FREQUENCY&#125; == 3-3-3 Exit For Loop \ Log $&#123;NUMBER&#125;-$&#123;TIME&#125;-$&#123;FREQUENCY&#125; \ Open Browser https://www.baidu.com/ Chrome \ Sleep 2 \ Input Text id = kw 大火 \ Click Button id = su \ Sleep 2 \ Close Browser Log Outside Loop 2. Text Edit: 1234567891011121314For008 : FOR $&#123;NUMBER&#125; $&#123;TIME&#125; $&#123;FREQUENCY&#125; IN ... 1 1 1 ... 2 2 2 ... 3 3 3 \ Exit For Loop If $&#123;NUMBER&#125;-$&#123;TIME&#125;-$&#123;FREQUENCY&#125; == 3-3-3 \ Log $&#123;NUMBER&#125;-$&#123;TIME&#125;-$&#123;FREQUENCY&#125; \ Open Browser https://www.baidu.com/ Chrome \ Sleep 2 \ Input Text id = kw 大火 \ Click Button id = su \ Sleep 2 \ Close Browser Log Outside Loop 上面是两种退出循环的写法，可以看出效果是一样的，均在执行完2-2-2时就退出了循环。]]></content>
+      <categories>
+        <category>Robot Framework</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[hexo常用命令]]></title>
+    <url>%2F2017%2F07%2F12%2Fhexo%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%2F</url>
+    <content type="text"><![CDATA[hexo s即：hexo server的缩写用来启动本地服务器，可以用来预览主题和文章。值得注意的是：使用hexo s启动的是默认4000端口的服务，如果该端口被占用了是打不开网页的。这个时候需要指定一个未被占用的端口，如：hexo s -p 1000 ，服务器启动后访问http://localhost:1000/即可 hexo clean清除缓存文件 db.json 和已生成的静态文件 public 。若网站显示异常可以执行这条命令试试。 hexo g即：hexo generate的缩写生成网站静态文件到默认设置的 public 文件夹。便于查看网站生成的静态文件或者手动部署网站；如果使用自动部署，不需要先执行该命令； hexo d即：hexo deploy的缩写自动生成网站静态文件，并部署到设定的仓库。 hexo new &#39;article name&#39; 创建新的文章 hexo new page about创建 about 页面，链接地址为 主页地址/about/创建其他页面类似]]></content>
+      <categories>
+        <category>hexo</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[入门Robot Framework(1)——我与RF的第一次接触]]></title>
+    <url>%2F2017%2F07%2F12%2F%E5%85%A5%E9%97%A8Robot-Framework-1-%E2%80%94%E2%80%94%E6%88%91%E4%B8%8ERF%E7%9A%84%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8E%A5%E8%A7%A6%2F</url>
+    <content type="text"><![CDATA[Robot Framework 简介 官方简介：&emsp;&emsp;Robot Framework是一款python编写的功能自动化测试框架。具备良好的可扩展性，支持关键字驱动，可以同时测试多种类型的客户端或者接口，可以进行分布式测试执行。主要用于轮次很多的验收测试和验收测试驱动开发（ATDD） 安装与配置 运行Robot Framework需要有Jython或Python的环境，这里我的电脑安装的是Python2.7。下载python2.7安装后配置环境变量，同时安装pypi。 安装wxPython:访问网址：https://sourceforge.net/projects/wxpython/files/wxPython/2.8.12.1/ 我的电脑是Windows64位的，注意是选择unicode版本的。下载后，双击程序按照提示进行安装。 使用pip安装Robot Framework、Robot的ide(ride)和需要的库，这次演示中用到了selenium2library这个库： 123pip install Robot Framework pip install robotframework-ride pip install robotframework-selenium2library 使用命令 pip list可以看到包已被正确安装 启动RobotIDE：RIDE 打开终端，进入ride.py所在文件夹(在python的Scripts文件夹中)cd C:\Python27\Scripts执行命令 ride.py成功打开RIDE 创建测试项目 点击File-&gt;New Project，选择Type为Directory。这里项目取名为TestProject。 创建测试Suite 右键刚刚创建的TestProject，点击New Suite，选择Type为File。这里Suite取名为TestSuite。 创建测试用例 右键刚刚创建的TestSuite，点击New Test Case，这里Test Case取名为TestCase001。 导入库 这里我们以测试Web应用为例，需要用到selenium的库，这里导入的是selenium2library。点击TestSuite-&gt;Edit-&gt;LibraryName栏输入：Selenium2Library点击OK 导入成功库名显示是黑色的，若不成功则显示为红色。 编写测试用例 这里使用快捷键F5可以查询出关键字的用法。比如第一步我们要打开浏览器，搜索open下方就显示了Open Browser的用法，包含它的一些必填/非必填参数。 关闭搜索关键字窗口，在TestCase001中输入Open Browser可以看到Open Browser变成蓝色，证明该方法可用。后面的空格变红，从上图得知是url必填。 使用同样的方法完成以下步骤的填写。这里我们使用chrome浏览器，打开浏览器后暂停2s，输入‘大火’进行搜索，暂停2s后关闭浏览器。 我们可以在表格中直接填写关键字 或者我们也可以选择直接编写txt文件，选择Text Edit进行编辑 执行测试 如图可以选中该测试用例后点击上方的‘开始’按钮开始执行；也可以选中要执行的用例后点击用例中的Run，然后点击Start按钮开始执行。 这个时候可以看到报错了，提示我们没有安装chrome的webdriver，无法打开浏览器。 复制打开信息中的url，点击download，选择合适的版本进行下载。这里我下载的是chromedriver_win32.zip 下载解压后，将chromedriver.exe放入python的scripts文件夹中。 这个时候再次点击执行测试，期间可以看到浏览器正确被操控。日志正确显示。可以看到测试报告保存的路径。 测试报告 复制报告路径，双击打开Log.html和Report.html log.html记录了用例的执行过程 report.html展示了用例执行的结果 总结 &emsp;&emsp;通过这个小例子可以看出通过使用Python能够对Robot Framework进行很好的扩展，通过使用它强大的测试库可以进行多种自动化测试。&emsp;&emsp;这是我第一次写技术类分享文章，有不规范与不严谨的地方，欢迎大家的指正。&emsp;&emsp;当然也希望自己能够坚持学习与分享，欢迎大家监督我！（捂脸逃）]]></content>
+      <categories>
+        <category>Robot Framework</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[hi]]></title>
+    <url>%2F2017%2F07%2F10%2Fhi%2F</url>
+    <content type="text"><![CDATA[欢迎来到我的博客，希望自己能坚持学习，坚持分享]]></content>
+      <categories>
+        <category>叨叨叨</category>
+      </categories>
+  </entry>
+</search>
