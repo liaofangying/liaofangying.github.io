@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://yoursite.com/"/>
-  <updated>2018-01-11T10:08:24.611Z</updated>
+  <updated>2019-06-25T11:38:02.986Z</updated>
   <id>http://yoursite.com/</id>
   
   <author>
@@ -15,6 +15,29 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>使用npm安装xmysql报错提示语法错误</title>
+    <link href="http://yoursite.com/2018/08/15/%E4%BD%BF%E7%94%A8npm%E5%AE%89%E8%A3%85xmysql%E6%8A%A5%E9%94%99%E6%8F%90%E7%A4%BA%E8%AF%AD%E6%B3%95%E9%94%99%E8%AF%AF/"/>
+    <id>http://yoursite.com/2018/08/15/使用npm安装xmysql报错提示语法错误/</id>
+    <published>2018-08-15T10:08:21.000Z</published>
+    <updated>2019-06-25T11:38:02.986Z</updated>
+    
+    <content type="html"><![CDATA[<p>最近打算深入学习postman进行接口自动化测试，做接口自动化测试避免不了check db。postman本身是不支持连接数据库进行操作的，仅仅是支持API的形式，所以我们可以通过API的形式去访问查询我们要check的db，nodejs就提供了xmysql这样一个模块供我们为mysql数据库快速生成restAPI</p><p>使用如下命令安装：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install -g xmysql</span><br></pre></td></tr></table></figure><p>可是安装成功之后使用xmysql -v命令， 却一直报该模块下的一个js文件语法错误<br>在尝试过以下方法均不成功：<br>1.使用镜像安装<br>2.卸载重新安装<br>3.重启node服务后再次安装</p><p>最后找到xmysql的GitHub地址：<a href="https://github.com/o1lab/xmysql" target="_blank" rel="noopener">https://github.com/o1lab/xmysql</a>  才知道该模块只支持 node &gt;= 7.6.0，而我本机安装的node是6.9版本的，所以不兼容了。<br>于是在nodejs中文网上下载了最新版本覆盖安装后，就能正常安装使用xmysql模块了~~</p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;最近打算深入学习postman进行接口自动化测试，做接口自动化测试避免不了check db。postman本身是不支持连接数据库进行操作的，仅仅是支持API的形式，所以我们可以通过API的形式去访问查询我们要check的db，nodejs就提供了xmysql这样一个模块供我
+      
+    
+    </summary>
+    
+      <category term="test" scheme="http://yoursite.com/categories/test/"/>
+    
+    
+  </entry>
   
   <entry>
     <title>简单python程序的目录结构</title>
@@ -464,29 +487,6 @@
     </summary>
     
       <category term="python" scheme="http://yoursite.com/categories/python/"/>
-    
-    
-  </entry>
-  
-  <entry>
-    <title>未修改文件时git status提示modified</title>
-    <link href="http://yoursite.com/2017/08/08/%E6%9C%AA%E4%BF%AE%E6%94%B9%E6%96%87%E4%BB%B6%E6%97%B6git-status%E6%8F%90%E7%A4%BAmodified/"/>
-    <id>http://yoursite.com/2017/08/08/未修改文件时git-status提示modified/</id>
-    <published>2017-08-08T02:31:11.000Z</published>
-    <updated>2017-08-08T02:41:32.844Z</updated>
-    
-    <content type="html"><![CDATA[<p>有时候git clone下来后，文件的权限不对，这样git会发现很多的改变，事实上是不需要提交的。<br>通过下面的配置可以让git忽略这种情况<br>执行命令：<br><code>git config core.fileMode false</code>     </p><p><img src="/2017/08/08/未修改文件时git-status提示modified/1-1.png" alt> </p><p><img src="/2017/08/08/未修改文件时git-status提示modified/1-2.png" alt>  </p>]]></content>
-    
-    <summary type="html">
-    
-      
-      
-        &lt;p&gt;有时候git clone下来后，文件的权限不对，这样git会发现很多的改变，事实上是不需要提交的。&lt;br&gt;通过下面的配置可以让git忽略这种情况&lt;br&gt;执行命令：&lt;br&gt;&lt;code&gt;git config core.fileMode false&lt;/code&gt;     &lt;/p&gt;
-      
-    
-    </summary>
-    
-      <category term="git" scheme="http://yoursite.com/categories/git/"/>
     
     
   </entry>
